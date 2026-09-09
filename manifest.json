@@ -1,0 +1,15 @@
+{
+  "name": "Rhine Gorge Castles",
+  "short_name": "Rhine Guide",
+  "description": "Offline castle guide for the Middle Rhine Valley, Koblenz to Bingen",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1620",
+  "theme_color": "#0f1620",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rhine Gorge Castles — Koblenz to Bingen</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1620">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <style>
   :root{
@@ -15,8 +18,9 @@
     margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     background:var(--bg); color:var(--text); padding-bottom:70px;
   }
+  #stickyTop{position:sticky; top:0; z-index:1000; background:var(--bg);}
   header{
-    padding:16px 16px 10px; position:sticky; top:0; background:var(--bg); z-index:1000;
+    padding:16px 16px 10px; background:var(--bg);
     border-bottom:1px solid var(--border);
   }
   h1{font-size:1.15rem; margin:0 0 2px; color:var(--accent);}
@@ -72,7 +76,7 @@
   
   .tabs{
     display:flex; gap:6px; padding:10px 12px; overflow-x:auto;
-    position:sticky; top:115px; background:var(--bg); z-index:999;
+    background:var(--bg);
     border-bottom:1px solid var(--border);
   }
   .tab{
@@ -108,6 +112,7 @@
   }
   .castle-card.done{opacity:0.45;}
   .castle-top{display:flex; align-items:flex-start; gap:10px; cursor:pointer;}
+  .castle-icon{flex:0 0 26px; width:26px; height:26px; margin-top:1px; display:flex; align-items:center; justify-content:center;}
   .checkbox{
     width:22px; height:22px; border-radius:6px; border:2px solid var(--accent2);
     flex:0 0 22px; margin-top:2px; display:flex; align-items:center; justify-content:center;
@@ -203,11 +208,11 @@
   }
   .map-panel-speak.speaking{background:#102238; color:#008cff;}
   .castle-name-tooltip{
-    background:var(--card); color:var(--text); border:1px solid #008cff;
-    border-radius:8px; padding:5px 8px; font-weight:600;
-    box-shadow:0 4px 12px rgba(0,0,0,.3);
+    background:rgba(24,34,51,.88); color:var(--text); border:1px solid #008cff;
+    border-radius:6px; padding:2px 6px; font-weight:600; font-size:.72rem;
+    box-shadow:0 2px 8px rgba(0,0,0,.35); white-space:nowrap; pointer-events:none;
   }
-  .castle-name-tooltip:before{border-top-color:var(--card) !important;}
+  .castle-name-tooltip:before{border-right-color:#008cff !important;}
   .map-note{font-size:.78rem; color:var(--muted); margin:8px 2px 0;}
   .castle-halo{
     animation: haloPulse 1.4s ease-out infinite;
@@ -275,6 +280,7 @@
 </head>
 <body>
 
+<div id="stickyTop">
 <header>
   <h1>🏰 Rhine Gorge Castles</h1>
   <p class="sub" id="subTitle">Koblenz → Bingen, English tour reference</p>
@@ -304,6 +310,7 @@
   <div class="tab" data-tab="legends">LEGENDS</div>
   <div class="tab" data-tab="info">INFO</div>
   <div class="tab" data-tab="route">ON THE ROUTE</div>
+</div>
 </div>
 
 <main>
@@ -588,6 +595,7 @@ const castles = [
   },
   {
     id: "loreley",
+    icon: "rock",
     lat: 50.1391667, lng: 7.7280556,
     name: "The Loreley Rock",
     town: "St. Goarshausen",
@@ -721,6 +729,7 @@ const castles = [
   },
   {
     id: "maeuseturm",
+    icon: "tower",
     lat: 49.9720141, lng: 7.8804018,
     name: "Mäuseturm (Mouse Tower)",
     town: "Bingen",
@@ -740,6 +749,7 @@ const castles = [
   },
   {
     id: "hildegard",
+    icon: "abbey",
     lat: 49.9924372, lng: 7.9283458,
     name: "Abbey of St. Hildegard",
     town: "Eibingen, near Rüdesheim",
@@ -940,6 +950,17 @@ const routePlaces = [
 
 const legendsOnly = castles.filter(c => c.legend && c.legend.length > 40);
 
+// Простые встроенные SVG-иконки — без единого внешнего запроса, работают полностью офлайн.
+const ICONS = {
+  castle: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#c9a24b" stroke-width="1.6"><path d="M3 21h18M4 21V10h3V7h2v3h2V5h2v5h2V7h2v3h3v11" stroke-linecap="round" stroke-linejoin="round"/><rect x="10" y="14" width="4" height="7" fill="#c9a24b" stroke="none"/></svg>',
+  tower: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#c9a24b" stroke-width="1.6"><path d="M9 21V9h6v12M8 9l1-4h6l1 4M7 21h10" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  rock: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#c9a24b" stroke-width="1.6"><path d="M3 21l3-9 3 4 2-6 3 5 2-3 5 9H3z" stroke-linejoin="round"/></svg>',
+  abbey: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#c9a24b" stroke-width="1.6"><path d="M4 21V11l8-6 8 6v10M4 21h16M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5V2M10.5 3.5h3" stroke-linecap="round"/></svg>'
+};
+function castleIcon(c){
+  return ICONS[c.icon] || ICONS.castle;
+}
+
 let lang = localStorage.getItem('rhineLang') || 'en';
 let gpsActive = false;
 
@@ -1082,6 +1103,7 @@ function renderCastles(list){
     <div class="castle-card" data-id="${c.id}">
       <div class="castle-top" onclick="toggleOpen('${c.id}')">
         <div class="checkbox" onclick="event.stopPropagation(); toggleDone('${c.id}')">✓</div>
+        <div class="castle-icon">${castleIcon(c)}</div>
         <div style="flex:1">
           <div class="castle-name">${c.name}</div>
           <div class="castle-town">${c.town}${c.pop && c.pop !== '—' ? ' · ' + c.pop : ''}</div>
@@ -1231,7 +1253,7 @@ function initMap(){
     selectedIndex = index;
     renderGuide(index);
 
-    title.textContent = c.name;
+    title.innerHTML = `<span style="display:inline-flex; align-items:center; gap:8px;">${castleIcon(c)}<span>${c.name}</span></span>`;
     meta.textContent = `${c.town}${c.pop && c.pop !== '—' ? ' · ' + c.pop : ''}  •  ${t.builtLabel} ${f(c,'built')}`;
     facts.innerHTML =
       `<strong>${t.factsLabel}:</strong> ${f(c,'facts')}<br><br>` +
@@ -1259,7 +1281,23 @@ function initMap(){
     haloMarker.setStyle({ opacity: 0.6, radius: 14 });
     haloMarker.bringToBack();
 
-    if (panMap && leafletMap) leafletMap.panTo([c.lat, c.lng], {animate:true, duration:.35});
+    if (panMap && leafletMap) {
+      // На узких экранах панель — это шторка снизу карты. Просто центрирование
+      // на точке пряталось бы под ней, поэтому сдвигаем цель так, чтобы точка
+      // осталась в видимой полосе НАД панелью.
+      requestAnimationFrame(() => {
+        const isBottomSheet = window.innerWidth < 800;
+        if (isBottomSheet && panel.classList.contains('open')) {
+          const panelHeight = panel.offsetHeight || 0;
+          const zoom = leafletMap.getZoom();
+          const targetPoint = leafletMap.project([c.lat, c.lng], zoom).add([0, panelHeight / 2]);
+          const targetLatLng = leafletMap.unproject(targetPoint, zoom);
+          leafletMap.panTo(targetLatLng, {animate:true, duration:.35});
+        } else {
+          leafletMap.panTo([c.lat, c.lng], {animate:true, duration:.35});
+        }
+      });
+    }
   }
 
   globalShowCastleFunc = showCastle;
@@ -1273,13 +1311,10 @@ function initMap(){
     }).addTo(leafletMap);
 
     marker.bindTooltip(c.name, {
-      direction:'top', offset:[0,-7], opacity:.96, className:'castle-name-tooltip'
+      permanent: true, direction:'right', offset:[10,0], opacity:.92, className:'castle-name-tooltip'
     });
 
     marker.on('click', () => showCastle(i));
-    marker.on('mouseover', () => {
-      if (window.matchMedia('(pointer:fine)').matches) marker.openTooltip();
-    });
 
     markers.push(marker);
   });
@@ -1356,7 +1391,8 @@ function renderGuide(index){
   const t = UI[lang];
 
   document.getElementById('guideCounter').textContent = `${guideIndex + 1} / ${castles.length}`;
-  document.getElementById('guideTitle').textContent = c.name;
+  document.getElementById('guideTitle').innerHTML =
+    `<span style="display:inline-flex; align-items:center; gap:8px;">${castleIcon(c)}<span>${c.name}</span></span>`;
   document.getElementById('guideMeta').textContent =
     `${c.town}${c.pop && c.pop !== '—' ? ' · ' + c.pop : ''}  •  ${f(c,'built')}`;
 
@@ -1582,9 +1618,21 @@ gpsToggleBtn.addEventListener('click', () => {
         }, 15000);
       },
       (error) => {
-        console.warn('GPS Error:', error);
+        console.warn('GPS Error code', error.code, error.message);
         gpsActive = false;
-        gpsStatusText.textContent = UI[lang].gpsBlocked;
+        let reason;
+        if (error.code === 1) {
+          reason = lang === 'ru'
+            ? '⚠️ Доступ к геолокации запрещён (проверьте разрешения сайта в Safari)'
+            : '⚠️ Location permission denied (check Safari site permissions)';
+        } else if (error.code === 2) {
+          reason = lang === 'ru' ? '⚠️ Геолокация недоступна на этом устройстве' : '⚠️ Position unavailable on this device';
+        } else if (error.code === 3) {
+          reason = lang === 'ru' ? '⚠️ Истекло время ожидания GPS' : '⚠️ GPS request timed out';
+        } else {
+          reason = UI[lang].gpsBlocked;
+        }
+        gpsStatusText.textContent = reason;
         gpsToggleBtn.textContent = UI[lang].gpsEnableBtn;
         gpsToggleBtn.classList.remove('gps-active');
       },
@@ -1684,6 +1732,17 @@ function processPosition(position) {
 
   apply();
 })();
+</script>
+
+<!-- PWA: регистрация Service Worker для офлайн-работы (бета) -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW registered, scope:', reg.scope))
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
 </script>
 
 </body>
