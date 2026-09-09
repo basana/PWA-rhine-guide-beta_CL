@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhine Gorge Castles — Koblenz to Bingen</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+  :root{
+    --bg:#0f1620; --card:#182233; --card2:#1e2b40; --accent:#c9a24b; --accent2:#7fb3d5;
+    --text:#eef2f6; --muted:#9fb0c3; --border:#2a3a52; --done:#3a5a40;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--text); padding-bottom:70px;
+  }
+  header{
+    padding:16px 16px 10px; position:sticky; top:0; background:var(--bg); z-index:1000;
+    border-bottom:1px solid var(--border);
+  }
+  h1{font-size:1.15rem; margin:0 0 2px; color:var(--accent);}
+  .sub{color:var(--muted); font-size:0.82rem; margin:0;}
+  .search{
+    width:100%; margin-top:10px; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.95rem;
+    position:relative; z-index:1001;
+  }
+  .lang-switch{display:flex; gap:6px; margin-top:8px;}
+  .lang-btn{
+    flex:1; padding:8px; border-radius:9px; border:1px solid var(--border);
+    background:var(--card); color:var(--muted); font-weight:700; font-size:.82rem; cursor:pointer;
+  }
+  .lang-btn.active{background:#008cff; border-color:#008cff; color:#fff;}
+  
+  .gps-control-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    margin-top:8px; padding:6px 10px; background:var(--card2); border:1px solid var(--border); border-radius:10px;
+    font-size:0.8rem; color:var(--muted);
+  }
+  .gps-toggle-btn{
+    background:var(--card); border:1px solid var(--border); color:var(--text);
+    padding:5px 10px; border-radius:7px; font-weight:700; font-size:0.75rem; cursor:pointer;
+  }
+  .gps-toggle-btn.gps-active{background:#2e7d32; border-color:#2e7d32; color:#fff;}
+
+  .gps-found-banner{
+    display:none; background:#0d3a24; border:1px solid #1e8a54; color:#bdf5d3;
+    border-radius:10px; padding:8px 12px; font-size:.82rem; margin:8px 0 0;
+    text-align:center; font-weight:600;
+  }
+  .gps-found-banner.show{display:block;}
+
+  #textSizeControl{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    margin:8px auto 4px; max-width:220px;
+  }
+  #textSizeControl button{
+    min-width:42px; min-height:38px; padding:5px 10px;
+    border:1px solid var(--border); border-radius:9px;
+    background:var(--card); color:var(--text);
+    font-size:18px; font-weight:700; cursor:pointer;
+  }
+  #textSizeValue{min-width:54px; text-align:center; color:var(--muted); font-size:14px;}
+
+  body.lang-ru .lang-en{display:none;}
+  body.lang-en .lang-ru{display:none;}
+  .stat-table{width:100%; border-collapse:collapse; margin-top:8px; font-size:0.85rem;}
+  .stat-table th{text-align:left; color:var(--accent); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; padding:4px 6px; border-bottom:1px solid var(--border);}
+  .stat-table td{padding:5px 6px; border-bottom:1px solid var(--border); color:var(--text);}
+  .stat-table tr:last-child td{border-bottom:none;}
+  
+  .tabs{
+    display:flex; gap:6px; padding:10px 12px; overflow-x:auto;
+    position:sticky; top:115px; background:var(--bg); z-index:999;
+    border-bottom:1px solid var(--border);
+  }
+  .tab{
+    flex:0 0 auto; padding:8px 14px; border-radius:20px; background:var(--card);
+    border:1px solid var(--border); color:var(--muted); font-size:0.85rem; cursor:pointer;
+    white-space:nowrap; position:relative; z-index:1000;
+  }
+  .tab.active{background:var(--accent); color:#1a1406; border-color:var(--accent); font-weight:600;}
+  main{padding:10px 12px 20px; position:relative; z-index:1;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .route-card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:14px 15px; margin-bottom:10px;
+  }
+  .route-kicker{font-size:.68rem; letter-spacing:.12em; color:#008cff; font-weight:800; margin-bottom:4px;}
+  .route-card h3{margin:0 0 4px; color:var(--text); font-size:1.05rem;}
+  .route-place{color:var(--accent2); font-size:.8rem; margin-bottom:9px;}
+  .route-card p{margin:0 0 8px; line-height:1.52; font-size:.9rem;}
+  .route-card p:last-child{margin-bottom:0;}
+  .route-hook{background:#102238; border-left:3px solid #008cff; padding:9px 11px; border-radius:7px; margin-top:9px; font-style:italic;}
+  .route-source-note{font-size:.72rem !important; color:var(--muted); margin-top:10px !important;}
+  .route-open-btn{
+    width:100%; margin-top:8px; min-height:48px; border-radius:11px; border:1px solid #008cff;
+    background:#008cff; color:#fff; font-weight:800; cursor:pointer;
+  }
+  .route-open-btn:active{transform:scale(.99);}
+
+  .castle-card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:12px 14px; margin-bottom:10px; transition:opacity .2s;
+  }
+  .castle-card.done{opacity:0.45;}
+  .castle-top{display:flex; align-items:flex-start; gap:10px; cursor:pointer;}
+  .checkbox{
+    width:22px; height:22px; border-radius:6px; border:2px solid var(--accent2);
+    flex:0 0 22px; margin-top:2px; display:flex; align-items:center; justify-content:center;
+    font-size:0.8rem; color:transparent; cursor:pointer;
+  }
+  .castle-card.done .checkbox{background:var(--done); border-color:var(--done); color:#fff;}
+  .castle-name{font-weight:600; font-size:1rem; color:var(--text);}
+  .castle-town{color:var(--accent2); font-size:0.82rem;}
+  .castle-meta{display:flex; gap:14px; margin-top:6px; font-size:0.8rem; color:var(--muted); flex-wrap:wrap;}
+  .badge{
+    background:var(--card2); border-radius:6px; padding:2px 8px; font-size:0.75rem; color:var(--muted);
+  }
+  .expand-hint{margin-left:auto; color:var(--muted); font-size:1.1rem; transform:rotate(0deg); transition:transform .2s;}
+  .castle-card.open .expand-hint{transform:rotate(180deg);}
+  .detail{display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:0.88rem; line-height:1.5;}
+  .castle-card.open .detail{display:block;}
+  .detail h4{margin:10px 0 4px; color:var(--accent); font-size:0.82rem; text-transform:uppercase; letter-spacing:0.03em;}
+  .detail h4:first-child{margin-top:0;}
+  .detail p{margin:0 0 8px; color:var(--text);}
+  .legend-box{
+    background:var(--card2); border-left:3px solid var(--accent); padding:8px 10px; border-radius:6px; margin-top:4px;
+  }
+  .say-line{
+    background:#101a26; border-radius:8px; padding:8px 10px; margin-top:6px; font-style:italic; color:#cfe0ee;
+  }
+
+  .info-card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;
+  }
+  .info-card h3{margin:0 0 6px; color:var(--accent); font-size:0.95rem;}
+  .info-card p{margin:0 0 8px; font-size:0.9rem; line-height:1.5;}
+
+  .progress{
+    position:fixed; bottom:0; left:0; right:0; background:var(--card);
+    border-top:1px solid var(--border); padding:10px 16px; display:flex;
+    justify-content:space-between; align-items:center; font-size:0.85rem; color:var(--muted); z-index:1000;
+  }
+  .progress b{color:var(--accent);}
+  .reset-btn{
+    background:transparent; border:1px solid var(--border); color:var(--muted);
+    border-radius:8px; padding:5px 10px; font-size:0.78rem; cursor:pointer;
+  }
+  #mapDiv{
+    width:100%; height:62vh; min-height:390px; border-radius:14px;
+    overflow:hidden; border:1px solid var(--border); position:relative;
+  }
+  .leaflet-popup-content-wrapper{background:var(--card); color:var(--text); border-radius:10px;}
+  .leaflet-popup-tip{background:var(--card);}
+  .popup-title{font-weight:700; color:#008cff; margin-bottom:5px;}
+  .popup-line{font-size:.82rem; color:var(--muted); margin:3px 0; white-space:normal;}
+
+  .map-controls{display:flex; gap:8px; margin-top:8px;}
+  .map-nav-btn{
+    flex:1; min-height:44px; border-radius:10px; border:1px solid var(--border);
+    background:var(--card); color:var(--text); font-weight:600; cursor:pointer;
+  }
+  .map-nav-btn:active{transform:scale(.98);}
+  .map-nav-btn.primary{background:#008cff; color:#fff; border-color:#008cff;}
+  .map-status{margin-top:6px; font-size:.76rem; color:var(--muted); text-align:center;}
+
+  .map-panel{
+    position:absolute; z-index:1200; left:12px; right:12px; bottom:12px;
+    background:rgba(24,34,51,.98); border:1px solid #008cff; border-radius:14px;
+    box-shadow:0 8px 28px rgba(0,0,0,.45); padding:14px;
+    max-height:68%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior:contain; display:none;
+  }
+  .map-panel.open{display:block;}
+  .map-panel-head{display:flex; align-items:flex-start; gap:10px;}
+  .map-panel-title{font-size:1.05rem; font-weight:700; color:#008cff; flex:1;}
+  .map-panel-close{
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--border);
+    background:var(--card2); color:var(--text); font-size:1.15rem; cursor:pointer; flex:0 0 34px;
+  }
+  .map-panel-meta{font-size:.8rem; color:var(--muted); margin-top:2px;}
+  .map-panel-section{
+    margin-top:10px; padding-top:9px; border-top:1px solid var(--border);
+    font-size:.88rem; line-height:1.48;
+  }
+  .map-panel-section strong{color:#008cff;}
+  .map-panel-legend{
+    padding:9px 10px; border-left:3px solid #008cff;
+    background:#102238; border-radius:7px;
+  }
+  .map-panel-say{
+    margin-top:8px; padding:9px 10px; background:#101a26; border-radius:8px;
+    font-style:italic; color:#d8e6f2; line-height:1.4;
+  }
+  .map-panel-speak{
+    position:sticky; bottom:0; z-index:5;
+    width:100%; margin-top:8px; min-height:48px; padding:0 12px; border-radius:9px;
+    border:1px solid #008cff; background:#008cff; color:#fff; font-weight:700; cursor:pointer;
+    box-shadow:0 -6px 12px rgba(15,22,32,.85);
+  }
+  .map-panel-speak.speaking{background:#102238; color:#008cff;}
+  .castle-name-tooltip{
+    background:var(--card); color:var(--text); border:1px solid #008cff;
+    border-radius:8px; padding:5px 8px; font-weight:600;
+    box-shadow:0 4px 12px rgba(0,0,0,.3);
+  }
+  .castle-name-tooltip:before{border-top-color:var(--card) !important;}
+  .map-note{font-size:.78rem; color:var(--muted); margin:8px 2px 0;}
+  .castle-halo{
+    animation: haloPulse 1.4s ease-out infinite;
+    pointer-events:none;
+  }
+  @keyframes haloPulse{
+    0%   { r:14; opacity:.55; }
+    70%  { r:26; opacity:0; }
+    100% { r:26; opacity:0; }
+  }
+
+  @media (min-width:800px){
+    .map-panel{
+      left:auto; width:min(390px,42%); right:14px; bottom:14px; max-height:72%;
+    }
+  }
+  @media (max-width:600px){
+    header{padding:10px 12px 8px;}
+    h1{font-size:1.02rem;}
+    .search{margin-top:7px; padding:9px 10px;}
+    .tabs{padding-bottom:7px;}
+    .tab{padding:7px 12px;}
+    main{padding-top:7px;}
+    #mapDiv{height:64vh; min-height:430px;}
+    .map-panel{left:8px; right:8px; bottom:8px; max-height:68%;}
+    .map-controls{gap:6px;}
+    .map-nav-btn{font-size:.82rem;}
+  }
+
+  .guide-card{
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:18px; max-width:760px; margin:0 auto;
+  }
+  .guide-kicker{font-size:.72rem; letter-spacing:.12em; color:#008cff; font-weight:700;}
+  .guide-counter{float:right; color:var(--muted); font-size:.78rem;}
+  .guide-card h2{font-size:1.45rem; margin:5px 0 3px; color:var(--text);}
+  .guide-meta{color:var(--muted); font-size:.86rem; margin-bottom:15px;}
+  .guide-block{margin-top:13px; padding-top:12px; border-top:1px solid var(--border); line-height:1.55; font-size:.94rem;}
+  .guide-label{font-size:.7rem; letter-spacing:.1em; font-weight:800; color:#008cff; margin-bottom:5px;}
+  .say-block{border:1px solid #008cff; border-radius:11px; padding:12px; background:#102238;}
+  .guide-say{font-size:1.03rem; line-height:1.5; font-style:italic;}
+  .speak-btn{margin-top:10px; min-height:42px; padding:0 14px; border-radius:9px; border:1px solid #008cff; background:#008cff; color:#fff; font-weight:700; cursor:pointer;}
+  .speak-btn.speaking{background:#102238; color:#008cff;}
+  .speak-status{font-size:.72rem; color:var(--muted); margin-top:5px; min-height:15px;}
+  .legend-guide-block{background:#102238; border-left:4px solid #008cff; padding:12px; border-radius:8px;}
+  .guide-more{margin-top:12px; color:var(--muted); font-size:.86rem;}
+  .guide-more summary{cursor:pointer; color:var(--text); font-weight:600; padding:7px 0;}
+  #guideDetails{padding-top:7px; line-height:1.5;}
+  .guide-actions{display:flex; gap:8px; margin-top:17px;}
+  .guide-actions button{
+    flex:1; min-height:48px; border-radius:11px; border:1px solid var(--border);
+    background:var(--card2); color:var(--text); font-weight:700; cursor:pointer;
+  }
+  .guide-actions button:first-child,.guide-actions button:last-child{
+    background:#008cff; border-color:#008cff; color:#fff;
+  }
+  @media (max-width:600px){
+    .guide-card{padding:15px;}
+    .guide-card h2{font-size:1.3rem;}
+    .guide-say{font-size:1rem;}
+    .guide-block{font-size:.9rem;}
+    .guide-actions button{min-height:50px; font-size:.78rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏰 Rhine Gorge Castles</h1>
+  <p class="sub" id="subTitle">Koblenz → Bingen, English tour reference</p>
+  <div class="lang-switch">
+    <button class="lang-btn active" id="langEnBtn" data-lang="en">EN</button>
+    <button class="lang-btn" id="langRuBtn" data-lang="ru">RU</button>
+  </div>
+  
+  <div class="gps-control-bar">
+    <span id="gpsStatusText">GPS: MANUAL</span>
+    <button class="gps-toggle-btn" id="gpsToggleBtn">🛰️ ENABLE AUTO GPS</button>
+  </div>
+  <div class="gps-found-banner" id="gpsFoundBanner"></div>
+
+  <input type="text" class="search" id="searchBox" placeholder="Search a castle, town, or legend…">
+  <div id="textSizeControl" aria-label="Text size">
+    <button type="button" id="textSizeDown" aria-label="Decrease text size">A−</button>
+    <span id="textSizeValue">100%</span>
+    <button type="button" id="textSizeUp" aria-label="Increase text size">A+</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="guide">GUIDE</div>
+  <div class="tab" data-tab="castles">CASTLES</div>
+  <div class="tab" data-tab="map">MAP</div>
+  <div class="tab" data-tab="legends">LEGENDS</div>
+  <div class="tab" data-tab="info">INFO</div>
+  <div class="tab" data-tab="route">ON THE ROUTE</div>
+</div>
+
+<main>
+  <div class="view" id="view-castles"></div>
+
+  <div class="view active" id="view-guide">
+    <div class="guide-card">
+      <div class="guide-kicker" id="guideKicker">BUS GUIDE MODE</div>
+      <div class="guide-counter" id="guideCounter">1 / 15</div>
+      <h2 id="guideTitle">Select a castle</h2>
+      <div class="guide-meta" id="guideMeta"></div>
+
+      <div class="guide-block say-block">
+        <div class="guide-label" id="guideSayThisLabel">SAY THIS</div>
+        <div class="guide-say" id="guideSay">Select a castle to begin.</div>
+        <button class="speak-btn" id="speakBtn">🔊 READ ALOUD</button>
+        <div class="speak-status" id="speakStatus"></div>
+      </div>
+
+      <div class="guide-block">
+        <div class="guide-label" id="guideStoryLabel">STORY</div>
+        <div id="guideStory"></div>
+      </div>
+
+      <div class="guide-block legend-guide-block">
+        <div class="guide-label" id="guideLegendLabel">LEGEND</div>
+        <div id="guideLegend"></div>
+      </div>
+
+      <details class="guide-more">
+        <summary id="guideMoreDetailsLabel">More details</summary>
+        <div id="guideDetails"></div>
+      </details>
+
+      <div class="guide-actions">
+        <button id="guidePrev">‹ PREVIOUS</button>
+        <button id="guideMap">MAP</button>
+        <button id="guideNext">NEXT ›</button>
+      </div>
+      <div class="guide-actions" style="margin-top:8px;">
+        <button id="playAllBtn" style="background:#008cff; border-color:#008cff; color:#fff;">▶ PLAY WHOLE ROUTE</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-map">
+    <div id="mapDiv">
+      <div class="map-panel" id="mapPanel">
+        <div class="map-panel-head">
+          <div style="flex:1">
+            <div class="map-panel-title" id="mapPanelTitle">Select a castle</div>
+            <div class="map-panel-meta" id="mapPanelMeta"></div>
+          </div>
+          <button class="map-panel-close" id="mapPanelClose" aria-label="Close">×</button>
+        </div>
+        <div class="map-panel-section" id="mapPanelFacts"></div>
+        <div class="map-panel-say" id="mapPanelSay" style="display:none"></div>
+        <button class="map-panel-speak" id="mapPanelSpeak">🔊 READ ALOUD</button>
+        <div class="map-panel-section map-panel-legend" id="mapPanelLegend"></div>
+      </div>
+    </div>
+    <div class="map-controls">
+      <button class="map-nav-btn" id="prevCastle">‹ Previous</button>
+      <button class="map-nav-btn primary" id="nextCastle">Next castle ›</button>
+    </div>
+    <div class="map-status" id="mapStatus">Tap a bright-red marker. Use Next castle while narrating to move along the route.</div>
+    <p class="map-note">Touch-friendly guide map: tap a red marker for the full card. iPad landscape uses a side card; iPhone portrait uses a compact lower card.</p>
+  </div>
+  <div class="view" id="view-route"></div>
+
+  <div class="view" id="view-legends"></div>
+  <div class="view" id="view-info">
+    <div class="info-card">
+      <div class="lang-en">
+        <h3>👥 Towns along the route — population</h3>
+        <p>From Koblenz to Bingen/Rüdesheim, in route order:</p>
+        <table class="stat-table">
+          <tr><th>Town</th><th>Population</th></tr>
+          <tr><td>Koblenz</td><td>~114,000</td></tr>
+          <tr><td>Lahnstein</td><td>~18,000</td></tr>
+          <tr><td>Braubach</td><td>~3,000</td></tr>
+          <tr><td>Boppard</td><td>~15,500</td></tr>
+          <tr><td>St. Goar</td><td>~2,900</td></tr>
+          <tr><td>St. Goarshausen</td><td>~1,300</td></tr>
+          <tr><td>Oberwesel</td><td>~2,900</td></tr>
+          <tr><td>Bacharach</td><td>~1,850</td></tr>
+          <tr><td>Kaub</td><td>~1,000</td></tr>
+          <tr><td>Trechtingshausen</td><td>~1,500</td></tr>
+          <tr><td>Niederheimbach</td><td>~750</td></tr>
+          <tr><td>Bingen</td><td>~26,000</td></tr>
+          <tr><td>Rüdesheim</td><td>~10,000</td></tr>
+        </table>
+        <p style="margin-top:10px;"><b>Wine businesses on the Mittelrhein:</b></p>
+        <table class="stat-table">
+          <tr><th>Year</th><th>Wine-growing businesses</th></tr>
+          <tr><td>1989</td><td>490</td></tr>
+          <tr><td>1999</td><td>303</td></tr>
+          <tr><td>2010</td><td>149</td></tr>
+          <tr><td>Today</td><td>~165</td></tr>
+        </table>
+        <p style="margin-top:8px;">Vineyard area: about 2,200 hectares in 1900 → about 460 hectares today. Most remaining businesses farm under 10 hectares.</p>
+      </div>
+      <div class="lang-ru">
+        <h3>👥 Города по маршруту — население</h3>
+        <p>От Кобленца до Бингена/Рюдесхайма, по порядку маршрута:</p>
+        <table class="stat-table">
+          <tr><th>Город</th><th>Население</th></tr>
+          <tr><td>Кобленц</td><td>~114 000</td></tr>
+          <tr><td>Ланштайн</td><td>~18 000</td></tr>
+          <tr><td>Браубах</td><td>~3 000</td></tr>
+          <tr><td>Боппард</td><td>~15 500</td></tr>
+          <tr><td>Санкт-Гоар</td><td>~2 900</td></tr>
+          <tr><td>Санкт-Гоарсхаузен</td><td>~1 300</td></tr>
+          <tr><td>Обервезель</td><td>~2 900</td></tr>
+          <tr><td>Бахарах</td><td>~1 850</td></tr>
+          <tr><td>Кауб</td><td>~1 000</td></tr>
+          <tr><td>Трехтингсхаузен</td><td>~1 500</td></tr>
+          <tr><td>Нидерхаймбах</td><td>~750</td></tr>
+          <tr><td>Бинген</td><td>~26 000</td></tr>
+          <tr><td>Рюдесхайм</td><td>~10 000</td></tr>
+        </table>
+        <p style="margin-top:10px;"><b>Винодельческие хозяйства на Среднем Рейне:</b></p>
+        <table class="stat-table">
+          <tr><th>Год</th><th>Хозяйств</th></tr>
+          <tr><td>1989</td><td>490</td></tr>
+          <tr><td>1999</td><td>303</td></tr>
+          <tr><td>2010</td><td>149</td></tr>
+          <tr><td>Сегодня</td><td>~165</td></tr>
+        </table>
+        <p style="margin-top:8px;">Площадь виноградников: около 2200 га в 1900 году → около 460 га сегодня. Большинство оставшихся хозяйств обрабатывают меньше 10 га.</p>
+      </div>
+    </div>
+    <div class="info-card">
+      <h3>UNESCO World Heritage</h3>
+      <p>Since 2002, the Upper Middle Rhine Valley (Koblenz to Bingen, ~65 km) is a UNESCO World Heritage Site — for the landscape as a whole: castles, vineyards, and small towns together, not any single building.</p>
+    </div>
+    <div class="info-card">
+      <h3>More to see along the route</h3>
+      <p>The castles are only part of the story. Towns, vineyards, Roman remains, river traffic, Romanticism and famous legends make the journey itself worth talking about.</p>
+      <button class="route-open-btn" id="openRouteFromInfo">🗺️ ON THE ROUTE →</button>
+    </div>
+    <div class="info-card">
+      <h3>The rebuild pattern</h3>
+      <p>Most castles here were first built in the 12th–14th centuries, destroyed by French troops (17th–18th c., especially under Louis XIV and later Napoleon), and rebuilt in the 19th century — often by the Prussian royal family, in the spirit of Rhine Romanticism.</p>
+    </div>
+    <div class="info-card">
+      <h3>Present-day life</h3>
+      <p>The valley's small towns live mainly on winegrowing (steep terraced Riesling vineyards, mostly hand-worked) and tourism (river cruises, hiking, castle visits). Populations here range from a few hundred to a few thousand — Bingen and Rüdesheim are the larger anchor towns at either end. A regional garden show (BUGA) is planned for 2029.</p>
+    </div>
+    <div class="info-card">
+      <h3>Ferries — everyday dependency</h3>
+      <p>There is no bridge across the Rhine anywhere in this stretch. Small car ferries connect the two banks. In very high water or very low water, ferries stop running — commuters and schoolchildren living on one side and working or studying on the other then face large detours, sometimes an hour or more, until the water level allows the ferry back.</p>
+    </div>
+    <div class="info-card">
+      <h3>Suggested narration order</h3>
+      <p>Leaving Koblenz: intro UNESCO + castle density → Stolzenfels/Lahneck: the destroy-and-rebuild pattern → Marksburg: the exception → Boppard bend: quiet scenic moment → St. Goar twins: toll/rivalry story → Loreley: legend, then the 1801 twist → Rheinstein/Reichenstein/Sooneck cluster → ferries: everyday-life story → Pfalzgrafenstein: visual punchline → Bacharach/Mäuseturm/Rüdesheim: arrival.</p>
+    </div>
+  </div>
+</main>
+
+<div class="progress">
+  <span>Seen: <b id="progressCount">0</b> / <span id="progressTotal">0</span></span>
+  <button class="reset-btn" id="resetBtn">Reset checkmarks</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const castles = [
+  {
+    id: "stolzenfels",
+    lat: 50.3031061, lng: 7.5921284,
+    name: "Schloss Stolzenfels",
+    town: "Koblenz",
+    pop: "~114,000",
+    built: "13th c. (rebuilt 1836–42)",
+    builtRu: "XIII век (перестроен в 1836–42)",
+    destroyed: "Destroyed by the French",
+    destroyedRu: "Разрушен французами",
+    style: "Neo-Gothic / Rhine Romanticism",
+    styleRu: "Неоготика / рейнский романтизм",
+    facts: "A castle stood here from the 1200s. It watched over ships on the river, and over some nearby silver mines. French soldiers destroyed it. Then, in the 1830s, Prussia rebuilt it as a grand new palace, for a future king.",
+    factsRu: "Замок стоял здесь с XIII века. Он следил за кораблями на реке и за соседними серебряными шахтами. Французские солдаты его разрушили. Потом, в 1830-х годах, Пруссия построила на этом месте новый роскошный дворец — для будущего короля.",
+    legend: "This castle has no old ghost story. Its real story is more interesting: 700 years later, a king took an old ruin and turned it into his own dream of the Middle Ages.",
+    legendRu: "У этого замка нет старой легенды о призраках. Его настоящая история интереснее: через 700 лет король взял старую руину и превратил её в свою мечту о Средневековье.",
+    say: "This castle looks medieval. But most of what you see is only 200 years old — built to look old.",
+    sayRu: "Этот замок выглядит средневековым. Но почти всё, что вы видите, построено всего 200 лет назад — специально, чтобы выглядеть старым."
+  },
+  {
+    id: "lahneck",
+    lat: 50.3065479, lng: 7.6123627,
+    name: "Burg Lahneck",
+    town: "Lahnstein",
+    pop: "~18,000",
+    built: "13th century",
+    builtRu: "XIII век",
+    destroyed: "Destroyed by the French (1689 / 1794)",
+    destroyedRu: "Разрушен французами (1689 и 1794)",
+    style: "Rebuilt 19th century",
+    styleRu: "Восстановлен в XIX веке",
+    facts: "Built in the 1200s, right where the small river Lahn meets the Rhine. French troops destroyed it — first in 1689, and again in 1794. Like so many castles here, it was rebuilt in the 1800s.",
+    factsRu: "Построен в XIII веке, там, где маленькая река Лан впадает в Рейн. Французские войска разрушили его — сначала в 1689 году, потом снова в 1794-м. Как и многие замки здесь, его восстановили в XIX веке.",
+    legend: "People say that Knights Templar hid here long ago, after their order was shut down. It's a nice story — but historians can't prove it really happened.",
+    legendRu: "Говорят, здесь когда-то прятались рыцари-тамплиеры, после того как их орден распустили. Красивая история — но историки не могут её доказать.",
+    say: "",
+    sayRu: ""
+  },
+  {
+    id: "marksburg",
+    lat: 50.2720119, lng: 7.64926,
+    name: "Marksburg",
+    town: "Braubach",
+    pop: "~3,000",
+    built: "c. 1231",
+    builtRu: "около 1231 года",
+    destroyed: "Never destroyed",
+    destroyedRu: "Никогда не был разрушен",
+    style: "Genuine medieval, layered additions",
+    styleRu: "Настоящее средневековое здание, достраивалось веками",
+    facts: "This is the only castle on the whole Rhine that was never destroyed. Building started around 1231. Over hundreds of years, people kept adding new parts to it.",
+    factsRu: "Это единственный замок на всём Рейне, который никогда не разрушали. Строительство началось около 1231 года. Сотни лет люди достраивали к нему новые части.",
+    legend: "It only got the name 'Marksburg' much later, in the 1400s, when a chapel to Saint Mark was added. Before that, people just called it the castle of Braubach.",
+    legendRu: "Название «Марксбург» он получил намного позже, в XV веке, когда добавили часовню святого Марка. До этого его просто называли замком Браубаха.",
+    say: "Look at this one carefully. This is what all the other castles looked like — before the French came.",
+    sayRu: "Посмотрите на этот замок внимательно. Так выглядели все остальные замки — до того, как пришли французы."
+  },
+  {
+    id: "rheinfels",
+    lat: 50.1544865, lng: 7.704412,
+    name: "Burg Rheinfels",
+    town: "St. Goar",
+    pop: "~2,900",
+    built: "1245",
+    builtRu: "1245 год",
+    destroyed: "Destroyed by the French (1794–97)",
+    destroyedRu: "Разрушен французами (1794–97)",
+    style: "Largest ruin in the valley",
+    styleRu: "Самая большая руина в долине",
+    facts: "Built in 1245 to collect tolls from ships. It grew into the biggest fortress on the whole Rhine. In 1692, it held out against 28,000 French soldiers — an amazing defense for its time. But in 1794, French troops swept through the region, and the castle fell without a fight. Soon after, they tore much of it down.",
+    factsRu: "Построен в 1245 году, чтобы собирать пошлину с кораблей. Со временем он стал самой большой крепостью на всём Рейне. В 1692 году он выдержал осаду 28 000 французских солдат — невероятная оборона для своего времени. Но в 1794 году французские войска прошли через регион, и замок сдался без боя. Вскоре после этого его почти полностью разрушили.",
+    legend: "People still remember that 1692 defense with pride. It was one of the very few times a Rhine fortress beat the French king's army.",
+    legendRu: "Оборону 1692 года здесь до сих пор вспоминают с гордостью. Это был один из немногих случаев, когда рейнская крепость победила армию французского короля.",
+    say: "",
+    sayRu: ""
+  },
+  {
+    id: "katz",
+    lat: 50.1519634, lng: 7.7242583,
+    name: "Burg Katz (\"Cat Castle\")",
+    town: "St. Goarshausen",
+    pop: "~1,300",
+    built: "1371",
+    builtRu: "1371 год",
+    destroyed: "Blown up by Napoleon (1806)",
+    destroyedRu: "Взорван по приказу Наполеона (1806)",
+    style: "Rebuilt c. 1896",
+    styleRu: "Восстановлен около 1896 года",
+    facts: "Built in 1371, to protect the local toll and to challenge a rival castle nearby. Napoleon had it blown up in 1806. It was rebuilt around 1896, using old drawings of the original.",
+    factsRu: "Построен в 1371 году — чтобы защищать местную пошлину и бросать вызов соседнему замку-сопернику. Наполеон приказал взорвать его в 1806 году. Его восстановили около 1896 года по старым рисункам.",
+    legend: "People nicknamed it 'the Cat.' Just across the valley stood 'the Mouse' — a rival castle. The nicknames became a running joke about two powers watching each other.",
+    legendRu: "Его прозвали «Кот». А прямо через долину стоял замок-соперник — «Мышь». Прозвища стали постоянной шуткой о двух силах, следящих друг за другом.",
+    say: "",
+    sayRu: ""
+  },
+  {
+    id: "maus",
+    lat: 50.1719014, lng: 7.695775,
+    name: "Burg Maus (\"Mouse Castle\")",
+    town: "Wellmich / St. Goarshausen",
+    pop: "—",
+    built: "1356 (started)",
+    builtRu: "начат в 1356 году",
+    destroyed: "Never destroyed",
+    destroyedRu: "Никогда не был разрушен",
+    style: "Fell into disrepair, restored 1900–06",
+    styleRu: "Обветшал, восстановлен в 1900–06",
+    facts: "Building started in 1356. A powerful archbishop built it to protect his own river tolls, against the family who built 'the Cat' nearby. Over time it fell into disrepair, but no war ever destroyed it. It was restored around 1900.",
+    factsRu: "Строительство началось в 1356 году. Могущественный архиепископ построил его, чтобы защищать свои речные пошлины от семьи, построившей соседний замок «Кот». Со временем он обветшал, но ни одна война его так и не разрушила. Его восстановили около 1900 года.",
+    legend: "Local people joked that the 'cat' castle would one day eat the 'mouse' castle. It never did — the mouse is still standing today.",
+    legendRu: "Местные жители шутили, что замок «Кот» когда-нибудь съест замок «Мышь». Этого так и не случилось — «Мышь» стоит до сих пор.",
+    say: "Unlike its 'cat' rival across the valley, the mouse was never actually destroyed.",
+    sayRu: "В отличие от своего соперника «Кота» через долину, «Мышь» никогда по-настоящему не разрушали."
+  },
+  {
+    id: "loreley",
+    lat: 50.1391667, lng: 7.7280556,
+    name: "The Loreley Rock",
+    town: "St. Goarshausen",
+    pop: "—",
+    built: "Natural rock; legend from 1801",
+    builtRu: "природная скала; легенда — с 1801 года",
+    destroyed: "—",
+    destroyedRu: "—",
+    style: "132 m slate cliff",
+    styleRu: "Сланцевая скала высотой 132 метра",
+    facts: "This is a steep rock, about 130 meters high. It sits at the narrowest point of the whole Rhine. Long ago, strong currents and hidden rocks here caused many real shipwrecks. The name likely means 'murmuring rock' — from old words for 'to murmur' and 'rock.' Today there's even a concert stage right on top of it.",
+    factsRu: "Это крутая скала высотой около 130 метров. Она стоит в самом узком месте всего Рейна. Давным-давно сильное течение и скрытые камни здесь стали причиной многих настоящих кораблекрушений. Название, скорее всего, значит «бормочущая скала» — от старых слов «бормотать» и «скала». Сегодня прямо на вершине скалы даже стоит концертная сцена.",
+    legend: "Many people think this legend is very old. It isn't. In 1801, a writer named Clemens Brentano invented a sad woman who drowns herself here. In 1824, another writer, Heinrich Heine, made her famous — a beautiful woman who sits on the rock, combs her golden hair, and sings. Her song is so beautiful that sailors forget the river, and their boats crash on the rocks. Later, a composer put this poem to music, and it became world-famous.",
+    legendRu: "Многие думают, что эта легенда очень древняя. Это не так. В 1801 году писатель Клеменс Брентано придумал грустную женщину, которая топится здесь от любви. В 1824 году другой писатель, Генрих Гейне, сделал её знаменитой — красавицу, которая сидит на скале, расчёсывает золотые волосы и поёт. Её песня так прекрасна, что моряки забывают о реке, и их лодки разбиваются о скалы. Позже композитор положил это стихотворение на музыку, и песня стала известна на весь мир.",
+    say: "This famous story is only 200 years old. But the danger underneath it was very real.",
+    sayRu: "Этой знаменитой истории всего 200 лет. Но опасность под ней была совершенно настоящей."
+  },
+  {
+    id: "reichenstein",
+    lat: 50.0064884, lng: 7.8529685,
+    name: "Burg Reichenstein",
+    town: "Trechtingshausen",
+    pop: "~1,500",
+    built: "11th–13th c.",
+    builtRu: "XI–XIII века",
+    destroyed: "Destroyed 1253 and again 1282",
+    destroyedRu: "Разрушен в 1253 и снова в 1282 году",
+    style: "Rebuilt 1899–1902, neo-Gothic",
+    styleRu: "Восстановлен в 1899–1902, неоготика",
+    facts: "Built between the 1000s and 1200s. Robber knights lived here — men who stopped ships and took money by force. The Archbishop of Mainz destroyed the castle once. People rebuilt it — and then the emperor's army destroyed it again in 1282, this time for good, to finally stop the robber knights. In the late 1800s, a rich family rebuilt it once more, in a fancy new style.",
+    factsRu: "Построен между XI и XIII веками. Здесь жили рыцари-разбойники — люди, которые останавливали корабли и силой забирали деньги. Архиепископ Майнца разрушил замок один раз. Его отстроили заново — а потом, в 1282 году, армия императора разрушила его снова, на этот раз окончательно, чтобы покончить с разбойниками. В конце XIX века богатая семья восстановила его ещё раз, уже в новом, изысканном стиле.",
+    legend: "The last robber knight here was caught and sentenced to death. He begged for his nine sons to be spared. The emperor made a strange deal: any son the headless body could still walk past would live. The story says the body walked past several sons before it fell. People still say the castle is haunted by his ghost.",
+    legendRu: "Последнего рыцаря-разбойника здесь поймали и приговорили к смерти. Он умолял пощадить его девятерых сыновей. Император заключил странную сделку: те сыновья, мимо которых пройдёт обезглавленное тело, останутся жить. Легенда говорит, что тело прошло мимо нескольких сыновей, прежде чем упасть. До сих пор говорят, что в замке живёт его призрак.",
+    say: "",
+    sayRu: ""
+  },
+  {
+    id: "rheinstein",
+    lat: 49.9935693, lng: 7.8583103,
+    name: "Burg Rheinstein",
+    town: "Trechtingshausen",
+    pop: "~1,500",
+    built: "c. 1282–1329",
+    builtRu: "около 1282–1329 годов",
+    destroyed: "Fell into disrepair (not destroyed by war)",
+    destroyedRu: "Обветшал (не был разрушен войной)",
+    style: "First Romantic rebuild, from 1825",
+    styleRu: "Первый романтический замок, восстановлен с 1825 года",
+    facts: "Built in the late 1200s, first as a simple toll station. The emperor once used it to judge captured robber knights. Later it was left empty and fell apart. In 1823, a Prussian prince bought the ruin and rebuilt it — the very first Rhine castle rebuilt in this new, romantic style. Many other princes copied the idea after him.",
+    factsRu: "Построен в конце XIII века, сначала просто как таможенный пост. Император использовал его, чтобы судить пойманных рыцарей-разбойников. Позже замок опустел и обветшал. В 1823 году прусский принц купил руину и восстановил её — это был самый первый рейнский замок, отстроенный в новом романтическом стиле. Многие другие принцы потом повторили эту идею.",
+    legend: "Famous guests stayed here later, including Queen Victoria of England. Locals still see this as proof of the castle's new grandeur.",
+    legendRu: "Позже здесь останавливались знаменитые гости, включая королеву Викторию Английскую. Местные жители до сих пор считают это доказательством нового величия замка.",
+    say: "This is where it all started — the very first ruin a prince decided to rebuild as a fairy-tale castle.",
+    sayRu: "Именно отсюда всё началось — первая руина, которую принц решил превратить в сказочный замок."
+  },
+  {
+    id: "sooneck",
+    lat: 50.019453, lng: 7.8248973,
+    name: "Burg Sooneck",
+    town: "Niederheimbach",
+    pop: "~750",
+    built: "11th–12th c.",
+    builtRu: "XI–XII века",
+    destroyed: "Destroyed 1282, again 1689 by the French",
+    destroyedRu: "Разрушен в 1282, снова французами в 1689",
+    style: "Restored 1843, functional not decorative",
+    styleRu: "Восстановлен в 1843, скромно, без излишеств",
+    facts: "Built in the 1000s or 1100s. Like its neighbor Reichenstein, it was home to robber knights. The emperor's army destroyed it in 1282. People rebuilt it, but French troops destroyed it again in 1689. In 1842, the Prussian royal family restored it a final time — this time keeping it simple, closer to how it really once looked.",
+    factsRu: "Построен в XI или XII веке. Как и соседний Райхенштайн, он был домом рыцарей-разбойников. Армия императора разрушила его в 1282 году. Его отстроили заново, но французские войска разрушили его снова в 1689-м. В 1842 году прусская королевская семья восстановила его в последний раз — на этот раз просто, ближе к тому, как он выглядел на самом деле.",
+    legend: "It shares the same robber-knight story as Reichenstein. Together, the two castles remind us of a time when local lords simply took what they wanted from passing ships.",
+    legendRu: "У него та же история про рыцарей-разбойников, что и у Райхенштайна. Вместе эти два замка напоминают нам о временах, когда местные феодалы просто забирали всё, что хотели, с проходящих кораблей.",
+    say: "",
+    sayRu: ""
+  },
+  {
+    id: "gutenfels",
+    lat: 50.0879075, lng: 7.7658988,
+    name: "Burg Gutenfels",
+    town: "Kaub",
+    pop: "~1,000",
+    built: "1222",
+    builtRu: "1222 год",
+    destroyed: "Partly demolished on Napoleon's orders (1806–07)",
+    destroyedRu: "Частично снесён по приказу Наполеона (1806–07)",
+    style: "Rebuilt 1889–92",
+    styleRu: "Восстановлен в 1889–92",
+    facts: "Built in 1222, to help guard the river toll together with the little castle on the island just below it. In 1504, it survived a week-long siege — probably where its name comes from: 'Gutenfels' means 'good, solid rock.' Napoleon's men tore parts of it down in the early 1800s. It was rebuilt from 1889.",
+    factsRu: "Построен в 1222 году, чтобы вместе с маленьким замком на острове ниже по течению охранять речную пошлину. В 1504 году он выдержал недельную осаду — вероятно, отсюда и название: «Гутенфельс» означает «добрая, крепкая скала». Люди Наполеона частично разрушили его в начале XIX века. Его восстановили начиная с 1889 года.",
+    legend: "A romantic story says a count's beautiful sister once lived here. A mystery knight won a tournament, then revealed himself as a future king — and married her. It's a lovely story, but historians trust the siege story much more.",
+    legendRu: "Романтическая история гласит, что здесь жила красавица-сестра графа. Таинственный рыцарь выиграл турнир, а потом оказался будущим королём — и женился на ней. Красивая история, но историки больше доверяют истории про осаду.",
+    say: "",
+    sayRu: ""
+  },
+  {
+    id: "pfalzgrafenstein",
+    lat: 50.0831239, lng: 7.7655246,
+    name: "Pfalzgrafenstein",
+    town: "Kaub (river island)",
+    pop: "—",
+    built: "From 1326",
+    builtRu: "с 1326 года",
+    destroyed: "Never seriously destroyed",
+    destroyedRu: "Никогда всерьёз не разрушался",
+    style: "Ship-shaped toll castle on an island",
+    styleRu: "Таможенный замок в форме корабля на острове",
+    facts: "Built from 1326, on a small island in the middle of the river. Its only real job was collecting money from ships passing by. You can still only reach it by boat. It's one of the few castles here that was never seriously destroyed.",
+    factsRu: "Построен начиная с 1326 года на маленьком острове посреди реки. Его единственная работа — собирать деньги с проплывающих кораблей. Добраться до него до сих пор можно только на лодке. Это один из немногих здешних замков, который никогда всерьёз не разрушали.",
+    legend: "Some people say noble women once came here to give birth. That's just a nice story — really, it was only ever a toll station, nothing more.",
+    legendRu: "Некоторые говорят, что сюда приезжали рожать знатные женщины. Это просто красивая история — на самом деле это была лишь таможня, и ничего больше.",
+    say: "A castle sitting right in the middle of the river — just to collect money from passing ships.",
+    sayRu: "Замок стоит прямо посреди реки — только для того, чтобы собирать деньги с проходящих кораблей."
+  },
+  {
+    id: "stahleck",
+    lat: 50.0581089, lng: 7.7657011,
+    name: "Burg Stahleck",
+    town: "Bacharach",
+    pop: "~1,850",
+    built: "12th century",
+    builtRu: "XII век",
+    destroyed: "Destroyed by the French (1689)",
+    destroyedRu: "Разрушен французами (1689)",
+    style: "Rebuilt 1925–38 as a youth hostel",
+    styleRu: "Восстановлен в 1925–38 как молодёжное общежитие",
+    facts: "Built in the 1100s, as a home for local counts. French troops destroyed it in 1689, along with the town below it. In the 1920s and 30s, people rebuilt it as a youth hostel — and it still is one today.",
+    factsRu: "Построен в XII веке как резиденция местных графов. Французские войска разрушили его в 1689 году вместе с городом внизу. В 1920–30-х годах его восстановили как молодёжное общежитие — таким оно остаётся и сегодня.",
+    legend: "In 1194, a big wedding took place here between two powerful noble families. People still remember it as the moment that calmed an old, bitter rivalry.",
+    legendRu: "В 1194 году здесь сыграли большую свадьбу между двумя могущественными знатными семьями. До сих пор её вспоминают как момент, который погасил старую, ожесточённую вражду.",
+    say: "",
+    sayRu: ""
+  },
+  {
+    id: "maeuseturm",
+    lat: 49.9720141, lng: 7.8804018,
+    name: "Mäuseturm (Mouse Tower)",
+    town: "Bingen",
+    pop: "~26,000 (Bingen)",
+    built: "Toll tower from 1298 (current tower 19th c.)",
+    builtRu: "таможенная башня с 1298 года (нынешняя башня — XIX век)",
+    destroyed: "Destroyed by the French (1689)",
+    destroyedRu: "Разрушен французами (1689)",
+    style: "Rebuilt 1855, neo-Gothic",
+    styleRu: "Восстановлена в 1855, неоготика",
+    facts: "This small tower stands on a tiny island. From 1298, it collected river tolls for the Archbishop of Mainz. French troops destroyed it in 1689. The tower you see today was rebuilt in 1855.",
+    factsRu: "Эта маленькая башня стоит на крошечном острове. С 1298 года она собирала речную пошлину для архиепископа Майнца. Французские войска разрушили её в 1689 году. Башня, которую вы видите сегодня, была восстановлена в 1855 году.",
+    legend: "This is the most famous Rhine legend, after the Loreley. A cruel bishop is said to have locked hungry people in a barn during a famine, and burned them alive — laughing that their cries were just 'squeaking mice.' An army of mice then hunted him down, and ate him alive, right here on this tower. It's a powerful story — but historians say it never really happened.",
+    legendRu: "Это самая известная рейнская легенда после Лорелей. Говорят, жестокий епископ во время голода запер голодных людей в амбаре и сжёг их заживо — смеясь, что их крики похожи на писк мышей. После этого армия мышей выследила его и заживо съела прямо здесь, в этой башне. Сильная история — но историки говорят, что этого никогда не было на самом деле.",
+    say: "A cruel bishop, a famine, and an army of angry mice — Germany's other great Rhine legend.",
+    sayRu: "Жестокий епископ, голод и армия разъярённых мышей — вторая великая рейнская легенда Германии."
+  },
+  {
+    id: "hildegard",
+    lat: 49.9924372, lng: 7.9283458,
+    name: "Abbey of St. Hildegard",
+    town: "Eibingen, near Rüdesheim",
+    pop: "—",
+    built: "Founded 1165 (present building early 1900s)",
+    builtRu: "основан в 1165 году (нынешнее здание — начало XX века)",
+    destroyed: "—",
+    destroyedRu: "—",
+    style: "Benedictine convent, still active today",
+    styleRu: "Бенедиктинский монастырь, действует и сегодня",
+    facts: "Up on the hill stands the Abbey of Saint Hildegard. Hildegard von Bingen lived here in the 1100s. She was a nun, a writer, a doctor, and a composer — all at the same time. In 1150, she built her own convent near Bingen. In 1165, she built a second one here, near Rüdesheim, where her relics still rest today.",
+    factsRu: "На холме стоит аббатство Святой Хильдегарды. Хильдегарда Бингенская жила здесь в XII веке. Она была монахиней, писательницей, врачом и композитором — всё сразу. В 1150 году она построила свой первый монастырь возле Бингена. В 1165 году — второй, здесь, возле Рюдесхайма, где до сих пор покоятся её мощи.",
+    legend: "People called her the 'Sibyl of the Rhine,' because of her visions — she said she had seen things since she was a small child. When she died in 1179, her sisters said they saw two rays of light cross the sky above her room. In 2012, the Pope named her a Doctor of the Church — a title given to only a few women in history.",
+    legendRu: "Её называли «Сивиллой Рейна» из-за её видений — она говорила, что видела их с самого детства. Когда она умерла в 1179 году, монахини рассказывали, что видели два луча света, пересёкшихся в небе над её комнатой. В 2012 году папа римский объявил её Учителем Церкви — титул, который в истории получили лишь несколько женщин.",
+    say: "A nun, a doctor, a composer, and a visionary — all in one woman, right here on the Rhine.",
+    sayRu: "Монахиня, врач, композитор и провидица — всё в одной женщине, прямо здесь, на Рейне."
+  },
+  {
+    id: "bromserburg",
+    lat: 49.9776596, lng: 7.9177834,
+    name: "Bromserburg",
+    town: "Rüdesheim am Rhein",
+    pop: "~10,000",
+    built: "1210",
+    builtRu: "1210 год",
+    destroyed: "—",
+    destroyedRu: "—",
+    style: "Oldest building in Rüdesheim, now a wine museum",
+    styleRu: "Старейшее здание Рюдесхайма, сейчас — музей вина",
+    facts: "Built in 1210, it's the oldest building in Rüdesheim. Today it's a wine museum. This is the end of our castle route — right across the river from Bingen.",
+    factsRu: "Построен в 1210 году, это старейшее здание Рюдесхайма. Сегодня здесь музей вина. Это конец нашего маршрута по замкам — прямо напротив Бингена, на другом берегу реки.",
+    legend: "This castle has no dramatic legend of its own. Its story is simply the town's story — from a small river village to one of Germany's best-known wine towns.",
+    legendRu: "У этого замка нет своей драматичной легенды. Его история — это просто история города: от маленькой рыбацкой деревни до одного из самых известных винных городов Германии.",
+    say: "",
+    sayRu: ""
+  }
+];
+
+const routePlaces = [
+  {
+    title: "Koblenz — where two rivers meet",
+    place: "Koblenz / Deutsches Eck",
+    text: "The journey begins at the confluence of the Rhine and Moselle. The name Koblenz goes back to the Roman name Castellum apud Confluentes — the settlement at the confluence. The Deutsches Eck itself takes its name from the Teutonic Order, which established a settlement here in 1216.",
+    extra: "The present peninsula was shaped in part by the filling of a harbor at the Moselle mouth. The monument to Kaiser Wilhelm I was inaugurated in 1897, destroyed in 1945, and reconstructed in 1993.",
+    hook: "Two rivers, one strategic point — and the perfect place to explain why this valley became so important."
+  },
+  {
+    title: "Stolzenfels — the Rhine Romanticism begins",
+    place: "Koblenz",
+    text: "Stolzenfels is a good first example of the great Rhine transformation: a medieval castle ruin became a 19th-century royal vision of the Middle Ages. Prussian Crown Prince Friedrich Wilhelm bought the ruin and had it rebuilt in the Romantic style.",
+    extra: "What looks medieval from the river is therefore partly a 19th-century work of art — exactly the kind of reconstruction that helped create the Rhine landscape tourists recognize today.",
+    hook: "It looks like a medieval castle. But much of the castle tourists see is a 19th-century fantasy of the Middle Ages."
+  },
+  {
+    title: "Lahnstein — where the Lahn joins the Rhine",
+    place: "Lahnstein / Lahneck",
+    text: "Lahneck stands above the mouth of the Lahn, opposite Stolzenfels. The location explains the castle's importance: the junction of two waterways was an ideal place to control movement and river traffic.",
+    extra: "Local tradition also connects Lahneck with fleeing Knights Templar, although that story is not historically confirmed. It works best as a clearly labelled legend rather than as established history.",
+    hook: "Here the geography itself explains the castle: two rivers meet, and whoever controlled the height could watch the traffic."
+  },
+  {
+    title: "The Lahn's hidden treasure — marble from a tropical sea",
+    titleRu: "Скрытое сокровище реки Лан — мрамор из тропического моря",
+    place: "Villmar, on the river Lahn",
+    text: "A little further up the river Lahn, the small town of Villmar sits on something special: colorful 'Lahn Marble.' It isn't true marble — it's a polishable limestone. It formed about 380 million years ago from coral reefs in a warm, shallow sea that once covered this part of Germany.",
+    textRu: "Чуть выше по реке Лан стоит маленький городок Фильмар, а под ним — кое-что особенное: цветной «ланский мрамор». На самом деле это не настоящий мрамор, а известняк, который хорошо полируется. Он образовался около 380 миллионов лет назад из коралловых рифов в тёплом мелком море, которое когда-то покрывало эту часть Германии.",
+    extra: "Because it shines so beautifully when polished, this stone traveled far from the Lahn valley. It was used in churches and palaces across Germany, and even further: in the entrance hall of the Empire State Building in New York, and in the Hermitage in St. Petersburg.",
+    extraRu: "Этот камень так красиво блестит после полировки, что уехал далеко за пределы долины Лана. Его использовали в церквях и дворцах по всей Германии, и даже дальше: в вестибюле Эмпайр-стейт-билдинг в Нью-Йорке и в Эрмитаже в Санкт-Петербурге.",
+    hook: "A small town on a small river — and a piece of it is standing in the lobby of one of the world's most famous skyscrapers.",
+    hookRu: "Маленький город на маленькой реке — а кусочек его стоит в вестибюле одного из самых знаменитых небоскрёбов мира."
+  },
+  {
+    title: "Braubach — a medieval town under Marksburg",
+    place: "Braubach",
+    text: "Braubach is one of the small Rhine towns that makes the valley feel medieval rather than simply scenic. Above it stands Marksburg, the remarkable survivor that was never destroyed in the great wave of warfare that ruined so many other Rhine castles.",
+    extra: "Marksburg is therefore especially useful for comparison: it gives visitors a physical idea of what many other Rhine castles might have looked like before later destruction and Romantic reconstruction.",
+    hook: "One town, one genuine medieval castle above it — and a perfect contrast with the reconstructed ruins further down the Rhine."
+  },
+  {
+    title: "Boppard — Rome is still under the town",
+    place: "Boppard",
+    text: "Boppard was an important Roman settlement. A late Roman fortress was built here in the 4th century; its substantial walls and towers shaped the later town. The ancient settlement was known as Baudobriga or Bodobrica.",
+    extra: "Boppard also has a long wine tradition. Roman soldiers received wine as part of their provisions, and the town's viticulture is documented in the Middle Ages. The Bopparder Hamm is today the largest contiguous vineyard area on the Middle Rhine.",
+    hook: "When you look at Boppard, you are not only looking at a medieval Rhine town — you are looking at a town whose shape still remembers Rome."
+  },
+  {
+    title: "St. Goar — the fortress that refused to fall",
+    place: "St. Goar / Rheinfels",
+    text: "Rheinfels began as a toll castle and grew into the largest fortress complex on the Middle Rhine. Its military history is unusually dramatic: it survived a long siege in the 13th century and later resisted a huge French attack in the age of Louis XIV.",
+    extra: "The final irony is that Rheinfels was not taken by a spectacular assault in 1794. It was abandoned as French forces advanced and was subsequently dismantled.",
+    hook: "The fortress survived armies — and in the end it was politics and retreat, not a victorious assault, that ended its military life."
+  },
+  {
+    title: "St. Goarshausen — the Cat and the Mouse",
+    place: "St. Goarshausen / Katz & Maus",
+    text: "Across the river, Burg Katz and Burg Maus tell a very Rhine-like story: castles were tools of competing powers trying to control tolls and river traffic. 'Maus' was originally known by other names; 'Maus' became a mocking nickname.",
+    extra: "The popular Cat-and-Mouse story reflects a real political rivalry, which is why the names are more than a tourist joke.",
+    hook: "The Rhine once had a real Cat-and-Mouse game — and it was played with castles and toll money."
+  },
+  {
+    title: "Loreley — a name, a rock, and a stage on top",
+    titleRu: "Лорелей — имя, скала и концертная площадка наверху",
+    place: "Loreley / St. Goarshausen",
+    text: "The rock is 132 meters high. It sits at the narrowest, once most dangerous bend of the whole Rhine. Old currents and a small waterfall made a murmuring sound here. That is probably where the name comes from: 'lureln' means 'to murmur,' and 'ley' means 'rock.' So Loreley likely means 'murmuring rock.' Another old theory links it to 'lauern' — 'to lurk' — so some call it the 'lurking rock' instead.",
+    textRu: "Скала высотой 132 метра. Она стоит на самом узком, когда-то самом опасном повороте всего Рейна. Старое течение и небольшой водопад издавали здесь глухой гул. Отсюда, вероятно, и название: «lureln» значит «бормотать», а «ley» — «скала». Так что «Лорелей», скорее всего, значит «бормочущая скала». Есть и другая версия — от слова «lauern», «подстерегать» — тогда это «скала-ловушка».",
+    extra: "Over the centuries, people have spelled her name many ways: Loreley, Lorelei, Lore Lay, Lore-Ley, Lurley, Lurlei. Today, a big open-air concert stage sits right on top of the rock — bands and orchestras still perform there. And two towns on opposite banks, St. Goar and St. Goarshausen, both like to say the legend really belongs to them.",
+    extraRu: "За века её имя писали по-разному: Loreley, Lorelei, Lore Lay, Lore-Ley, Lurley, Lurlei. Сегодня прямо на вершине скалы стоит большая концертная площадка под открытым небом — там до сих пор выступают группы и оркестры. А два города на разных берегах, St. Goar and St. Goarshausen, любят говорить, что легенда на самом деле родом именно у них.",
+    hook: "One rock, one murmur, a dozen spellings — and a concert stage where the siren used to sing.",
+    hookRu: "Одна скала, один гул воды, десяток вариантов написания имени — и концертная сцена там, где когда-то пела сирена."
+  },
+  {
+    title: "Oberwesel — towers, vineyards and the Romantic Rhine",
+    place: "Oberwesel",
+    text: "Oberwesel is one of the places where the valley's medieval character is especially visible: walls, towers, vineyards and the steep slopes all survive together. It is a good moment to explain that UNESCO protects the entire cultural landscape, not a single castle.",
+    extra: "The town also belongs to the literary and Romantic story of the Rhine, when writers, painters and travellers turned the valley into one of Europe's most celebrated landscapes.",
+    hook: "Here the castle is only one piece of the picture — the town, walls, vineyards and river together are the heritage."
+  },
+  {
+    title: "Bacharach — the oldest town Victor Hugo ever saw",
+    titleRu: "Бахарах — самый старый город, который видел Виктор Гюго",
+    place: "Bacharach",
+    text: "The name Bacharach comes from Latin: 'Bacchi ara,' the altar of Bacchus, the Roman god of wine. Wine has been traded here since Roman times. In 1839, the French writer Victor Hugo visited and later wrote: 'Bacharach is truly the most ancient heap of human dwellings I have ever seen in my life.'",
+    textRu: "Название Бахарах происходит от латинского «Bacchi ara» — «алтарь Вакха», римского бога вина. Вино торгуют здесь ещё со времён римлян. В 1839 году французский писатель Виктор Гюго побывал здесь и потом написал: «Бахарах — правда, самое древнее скопление человеческих жилищ, какое я видел в своей жизни».",
+    extra: "In the 1400s, about 6,000 people lived in Bacharach — a big number for that time. Then came plagues, fires, and religious wars. The town emptied out. For 200 years now, it has stayed a small place of under 2,000 people. Above the town stands the Wernerkapelle, a ruined Gothic chapel from the 1200s. It was built after a boy named Werner was found dead nearby. At the time, local Jews were wrongly blamed for his death — a false accusation that led to terrible violence against them. Historians agree today that the accusation was untrue. A memorial plaque in the ruin now honors the victims. French troops damaged the chapel in 1689, and it has stood as a roofless ruin ever since. Bacharach also runs a local 'ghost tour' today, pointing out old buildings — like the Posthof — with spooky stories attached. Some of these stories are hard to verify, so treat them as local color rather than confirmed history.",
+    extraRu: "В XV веке в Бахарахе жило около 6000 человек — очень много для того времени. Потом пришли чума, пожары и религиозные войны. Город опустел. Уже 200 лет он остаётся небольшим местом, где живёт меньше 2000 человек. Над городом стоит Вернеркапелле — руины готической часовни XIII века. Её построили после того, как рядом нашли мёртвого мальчика по имени Вернер. Тогда местных евреев ложно обвинили в его смерти — это лживое обвинение привело к страшному насилию против них. Сегодня историки согласны, что обвинение было неправдой. Памятная табличка в руинах сейчас чтит память жертв. Французские войска повредили часовню в 1689 году, и с тех пор она стоит без крыши. Сегодня в Бахарахе также проводят местную «экскурсию с привидениями» — показывают старые здания, например Постхоф, с жуткими историями. Некоторые из этих историй трудно проверить, так что стоит воспринимать их как местный колорит, а не подтверждённую историю.",
+    hook: "Six thousand people once lived here. Today it's under two thousand — and Victor Hugo still called it the oldest town he'd ever seen.",
+    hookRu: "Когда-то здесь жили шесть тысяч человек. Сегодня — меньше двух тысяч. А Виктор Гюго всё равно назвал это самым старым городом, который он видел."
+  },
+  {
+    title: "Kaub — wine, tolls and Blücher",
+    place: "Kaub",
+    text: "Kaub was a working river town shaped by wine, shipping and toll collection. Historical records preserve surprisingly detailed information about the wines traded here, including spiced and heated varieties.",
+    extra: "Kaub is also linked to the crossing of Prussian Field Marshal Blücher in 1814, one of the memorable military episodes of the Napoleonic period on the Rhine. Local tradition adds the romantic story of Elslein von Kaub; it should be presented as legend rather than contemporary medieval fact.",
+    hook: "Kaub is where the Rhine becomes a story about money, wine and armies — all using the same river."
+  },
+  {
+    title: "Pfalzgrafenstein — the toll castle in the river",
+    place: "Kaub / Rhine island",
+    text: "Pfalzgrafenstein was built as a toll station on a tiny rocky island. Its extraordinary ship-like shape makes its purpose immediately visible: it was not designed as a comfortable palace, but as a working obstacle in the river.",
+    extra: "The castle's famous location makes it one of the strongest visual moments of the journey. The romantic stories about countesses waiting here for childbirth are legend; its documented function was connected with collecting tolls from passing traffic.",
+    hook: "Imagine paying your river toll to a castle sitting in the middle of the Rhine."
+  },
+  {
+    title: "Reichenstein, Rheinstein and Sooneck — three faces of the ruin",
+    place: "Trechtingshausen / Niederheimbach",
+    text: "This cluster shows three different responses to the medieval castle past. Reichenstein became associated with the robber-knight tradition and was later rebuilt in a neo-Gothic style. Rheinstein became an early showcase of Romantic restoration. Sooneck was also rebuilt by the Prussian royal family, but with a more restrained medieval character.",
+    extra: "The contrast is useful for tourists: from the river, all three may look like medieval castles, but their present appearance belongs to very different moments in history.",
+    hook: "On this short stretch, you can watch the 19th century reinvent the Middle Ages three different ways."
+  },
+  {
+    title: "The vanishing vineyards — wine, then and now",
+    titleRu: "Исчезающие виноградники — вино вчера и сегодня",
+    place: "Mittelrhein region",
+    text: "In 1900, vineyards covered about 2,200 hectares along the whole Mittelrhein. Today, only about 460 hectares are left — less than a quarter. Two world wars, hard years afterward, and the sheer difficulty of hand-farming these steep slopes all pushed many families to give up their vines.",
+    textRu: "В 1900 году виноградники на всём Среднем Рейне занимали около 2200 гектаров. Сегодня осталось только около 460 гектаров — меньше четверти. Две мировые войны, тяжёлые годы после них и просто тяжесть ручного труда на таких крутых склонах заставили многие семьи отказаться от своих виноградников.",
+    extra: "Official statistics show the collapse clearly: in 1989 there were 490 wine-growing businesses in the Mittelrhein region. By 1999 that number had fallen to 303. By 2010 it was down to just 149 — roughly a 70% drop in only 20 years. Today about 165 wine-growing businesses remain, and most are small — under 10 hectares each. A town like Bacharach, with almost 1,850 people, counts as one of the bigger villages in the valley. Many neighboring villages, like Niederheimbach, have only around 750 people. Small population, steep vineyards, hard work — that's the real, everyday Mittelrhein behind the postcard view.",
+    extraRu: "Официальная статистика ясно показывает обвал: в 1989 году в регионе Средний Рейн было 490 винодельческих хозяйств. К 1999 году их число упало до 303. К 2010 году — всего до 149, то есть падение примерно на 70% всего за 20 лет. Сегодня в регионе осталось около 165 винодельческих хозяйств, и большинство из них маленькие — меньше 10 гектаров. Такой город, как Бахарах, с почти 1850 жителями, считается одним из крупных посёлков в долине. Многие соседние деревни, например Нидерхаймбах, насчитывают всего около 750 человек. Маленькое население, крутые склоны, тяжёлый труд — вот настоящий, будничный Средний Рейн за красивой картинкой.",
+    hook: "A hundred years ago, vineyards covered four times more land than today. Most of that hillside work has simply disappeared.",
+    hookRu: "Сто лет назад виноградники занимали в четыре раза больше земли, чем сегодня. Бо́льшая часть этой работы на склонах просто исчезла."
+  },
+  {
+    title: "Bingen and the Mäuseturm — history, then legend",
+    titleRu: "Бинген и Mäuseturm — сначала история, потом легенда",
+    place: "Bingen / Mäuseturm",
+    text: "HISTORY: Bingen is much older than its romantic tourist image. Celts and then Romans settled here, where the Rhine meets the river Nahe — a natural gateway into the gorge. The little tower on the island nearby, the Mäuseturm, was a real toll and signal station from the 1200s onward, rebuilt in 1855.",
+    textRu: "ИСТОРИЯ: Бинген гораздо старше своего романтичного туристического образа. Здесь селились сначала кельты, потом римляне — там, где Рейн встречается с рекой Наэ, естественные ворота в ущелье. Маленькая башня на соседнем острове, Mäuseturm, с XIII века была настоящей таможенной и сигнальной станцией, перестроенной в 1855 году.",
+    extra: "LEGEND: Everyone knows the tower as the 'Mouse Tower' — because of the story of cruel Bishop Hatto, who locked hungry people in a barn and was later eaten alive by an army of mice. Historians say this never happened. Interesting detail: many linguists think 'Mäuseturm' isn't about mice at all — it may be a corruption of 'Mautturm,' simply meaning 'toll tower.' The mice may have crept into the name almost by accident.",
+    extraRu: "ЛЕГЕНДА: Все знают эту башню как «Мышиную башню» — из-за истории о жестоком епископе Хатто, который запер голодных людей в амбаре, а потом его самого заживо съела армия мышей. Историки говорят, что этого никогда не было. Интересная деталь: многие лингвисты считают, что «Mäuseturm» вообще не про мышей — возможно, это искажённое «Mautturm», то есть просто «таможенная башня». Мыши, похоже, попали в название почти случайно.",
+    hook: "The mice are legend. The tolls were real. And even the name may just be a very old misunderstanding.",
+    hookRu: "Мыши — это легенда. Пошлины были настоящими. А само название, возможно, — просто очень старое недоразумение."
+  },
+  {
+    title: "Rüdesheim — wine meets mass tourism",
+    place: "Rüdesheim am Rhein",
+    text: "Rüdesheim became one of the best-known wine towns on the Rhine, but its tourist identity is also a product of the 19th century. The Niederwald Monument above the town became a major destination, and transport connections helped visitors reach the viewpoint.",
+    extra: "The town also offers wonderfully unexpected stories: Siegfried's Mechanical Music Cabinet contains hundreds of self-playing instruments, while the old transport infrastructure around the Drosselgasse recalls a time when animals and people helped move goods and boats along the river.",
+    hook: "Rüdesheim is where the medieval wine town meets the age of organized tourism."
+  },
+  {
+    title: "The Rhine itself — the road that made everything possible",
+    place: "Koblenz → Bingen",
+    text: "The most important 'place' on the route is the river itself. For centuries the Rhine was a highway for goods, soldiers, pilgrims and travellers — but also a source of danger and a place where rulers could charge tolls.",
+    extra: "That is why the castles are not randomly scattered on the hills. They form a historical network around one of Europe's great transport corridors. The vineyards and towns developed alongside the same river economy.",
+    hook: "The castles are not the story by themselves. The Rhine is the story — the castles were built because the river was there."
+  },
+  {
+    title: "Why UNESCO chose this whole valley — not just one castle",
+    titleRu: "Почему ЮНЕСКО выбрало всю долину — а не один замок",
+    place: "Upper Middle Rhine Valley",
+    text: "In 2002, UNESCO named this stretch a World Heritage Site: the Upper Middle Rhine Valley, from Bingen and Rüdesheim all the way to Koblenz — about 65 kilometers. Inside that stretch: around 60 small towns and villages, about 40 castles and fortresses, and steep terraced vineyards that cling to the slopes.",
+    textRu: "В 2002 году ЮНЕСКО присвоило этому участку статус объекта Всемирного наследия: Верхняя долина Среднего Рейна, от Бингена и Рюдесхайма до Кобленца — около 65 километров. На этом отрезке: около 60 маленьких городов и деревень, около 40 замков и крепостей, и крутые террасные виноградники, цепляющиеся за склоны.",
+    extra: "UNESCO's point is simple: the value isn't any single castle. It's the whole cultural landscape together — river, towns, vineyards, castles, transport, history and legends, all at once. The vineyards on these steep slopes are over a thousand years old. Most castles were built across roughly a thousand years too, then ruined by 17th-century wars, then reimagined by 18th- and 19th-century Romanticism into the valley we see today. And through all of it, the Rhine has stayed one of Europe's most important transport routes, linking north and south for centuries.",
+    extraRu: "Идея ЮНЕСКО проста: ценность не в каком-то одном замке. Ценность — во всём культурном ландшафте сразу: река, города, виноградники, замки, транспорт, история и легенды — всё вместе. Виноградникам на этих крутых склонах больше тысячи лет. Большинству замков — примерно столько же, потом их разрушили войны XVII века, а потом романтизм XVIII–XIX веков заново придумал их такими, какими мы видим долину сегодня. И через всё это время Рейн остаётся одним из важнейших транспортных путей Европы, веками связывающим север и юг.",
+    hook: "It's not a list of castles. It's one continuous landscape — and that's exactly what UNESCO decided to protect.",
+    hookRu: "Это не список замков. Это единый, цельный ландшафт — и именно его решило защитить ЮНЕСКО."
+  }
+];
+
+const legendsOnly = castles.filter(c => c.legend && c.legend.length > 40);
+
+let lang = localStorage.getItem('rhineLang') || 'en';
+let gpsActive = false;
+
+function f(c, field){
+  if (lang === 'ru') {
+    const ruField = field + 'Ru';
+    if (c[ruField] !== undefined) return c[ruField];
+  }
+  return c[field];
+}
+
+const UI = {
+  en: {
+    subTitle: 'Koblenz → Bingen, English tour reference',
+    searchPlaceholder: 'Search a castle, town, or legend…',
+    tabGuide: 'GUIDE', tabCastles: 'CASTLES', tabMap: 'MAP', tabLegends: 'LEGENDS', tabInfo: 'INFO', tabRoute: 'ON THE ROUTE',
+    factsLabel: 'Facts', legendLabel: 'Legend', builtLabel: 'Built',
+    seen: 'Seen', resetBtn: 'Reset checkmarks',
+    guideKicker: 'BUS GUIDE MODE', guideSayThis: 'SAY THIS', guideStory: 'STORY', guideLegend: 'LEGEND',
+    guideMoreDetails: 'More details', guidePrev: '‹ PREVIOUS', guideNext: 'NEXT ›', guideMapBtn: 'MAP',
+    playAll: '▶ PLAY WHOLE ROUTE', stopAll: '⏹ STOP ROUTE PLAYBACK',
+    readAloud: '🔊 READ ALOUD', stopReading: '⏹ STOP',
+    selectCastle: 'Select a castle to begin.',
+    noSayLine: 'No short narration line saved for this castle.',
+    statusField: 'Status', styleField: 'Style',
+    mapDefaultTitle: 'Select a castle',
+    mapNavPrev: '‹ Previous', mapNavNext: 'Next castle ›',
+    mapStatusDefault: 'Tap a bright-red marker. Use Next castle while narrating to move along the route.',
+    mapStatusClosed: 'Tap a bright-red marker or use Next castle.',
+    mapNote: 'Touch-friendly guide map: tap a red marker for the full card. iPad landscape uses a side card; iPhone portrait uses a compact lower card.',
+    say: 'SAY',
+    gpsManual: 'GPS: MANUAL',
+    gpsActive: '🛰️ AUTO GPS ACTIVE',
+    gpsEnableBtn: '🛰️ ENABLE AUTO GPS',
+    gpsDisableBtn: '📍 DISABLE GPS',
+    gpsAcquiring: '⏳ Acquiring GPS…',
+    gpsBlocked: '⚠️ GPS Blocked by iOS (Use Manual)'
+  },
+  ru: {
+    subTitle: 'Кобленц → Бинген, справка по маршруту',
+    searchPlaceholder: 'Поиск замка, города или легенды…',
+    tabGuide: 'ГИД', tabCastles: 'ЗАМКИ', tabMap: 'КАРТА', tabLegends: 'ЛЕГЕНДЫ', tabInfo: 'ИНФО', tabRoute: 'ПО ПУТИ',
+    factsLabel: 'Факты', legendLabel: 'Легенда', builtLabel: 'Построен',
+    seen: 'Пройдено', resetBtn: 'Сбросить отметки',
+    guideKicker: 'РЕЖИМ ГИДА В АВТОБУСЕ', guideSayThis: 'СКАЖИТЕ ЭТО', guideStory: 'ИСТОРИЯ', guideLegend: 'ЛЕГЕНДА',
+    guideMoreDetails: 'Подробнее', guidePrev: '‹ НАЗАД', guideNext: 'ДАЛЕЕ ›', guideMapBtn: 'КАРТА',
+    playAll: '▶ ПРОИГРАТЬ ВЕСЬ МАРШРУТ', stopAll: '⏹ ОСТАНОВИТЬ',
+    readAloud: '🔊 ОЗВУЧИТЬ', stopReading: '⏹ СТОП',
+    selectCastle: 'Выберите замок, чтобы начать.',
+    noSayLine: 'Для этого замка нет короткой фразы.',
+    statusField: 'Статус', styleField: 'Стиль',
+    mapDefaultTitle: 'Выберите замок',
+    mapNavPrev: '‹ Назад', mapNavNext: 'Следующий замок ›',
+    mapStatusDefault: 'Нажмите на ярко-красную точку. Используйте «Следующий замок», рассказывая по пути.',
+    mapStatusClosed: 'Нажмите на ярко-красную точку или используйте «Следующий замок».',
+    mapNote: 'Удобная карта для гида: нажмите на красную точку, чтобы открыть карточку.',
+    say: 'СКАЖИТЕ',
+    gpsManual: 'GPS: РУЧНОЙ',
+    gpsActive: '🛰️ AUTO GPS АКТИВЕН',
+    gpsEnableBtn: '🛰️ ВКЛЮЧИТЬ AUTO GPS',
+    gpsDisableBtn: '📍 ОТКЛЮЧИТЬ GPS',
+    gpsAcquiring: '⏳ Получение GPS…',
+    gpsBlocked: '⚠️ GPS заблокирован iOS (Используйте ручной)'
+  }
+};
+
+function applyStaticText(){
+  const t = UI[lang];
+  document.getElementById('subTitle').textContent = t.subTitle;
+  document.getElementById('searchBox').placeholder = t.searchPlaceholder;
+  document.querySelector('.tab[data-tab="guide"]').textContent = t.tabGuide;
+  document.querySelector('.tab[data-tab="castles"]').textContent = t.tabCastles;
+  document.querySelector('.tab[data-tab="map"]').textContent = t.tabMap;
+  document.querySelector('.tab[data-tab="legends"]').textContent = t.tabLegends;
+  document.querySelector('.tab[data-tab="info"]').textContent = t.tabInfo;
+  document.querySelector('.tab[data-tab="route"]').textContent = t.tabRoute;
+  document.getElementById('resetBtn').textContent = t.resetBtn;
+  document.getElementById('guideKicker').textContent = t.guideKicker;
+  document.getElementById('guideSayThisLabel').textContent = t.guideSayThis;
+  document.getElementById('guideStoryLabel').textContent = t.guideStory;
+  document.getElementById('guideLegendLabel').textContent = t.guideLegend;
+  document.getElementById('guideMoreDetailsLabel').textContent = t.guideMoreDetails;
+  document.getElementById('playAllBtn').textContent = playAllActive ? t.stopAll : t.playAll;
+  document.getElementById('guidePrev').textContent = t.guidePrev;
+  document.getElementById('guideNext').textContent = t.guideNext;
+  document.getElementById('guideMap').textContent = t.guideMapBtn;
+  document.getElementById('prevCastle').textContent = t.mapNavPrev;
+  document.getElementById('nextCastle').textContent = t.mapNavNext;
+  document.querySelector('.map-note').textContent = t.mapNote;
+
+  if (!gpsActive) {
+    document.getElementById('gpsStatusText').textContent = t.gpsManual;
+    document.getElementById('gpsToggleBtn').textContent = t.gpsEnableBtn;
+  } else {
+    document.getElementById('gpsStatusText').textContent = t.gpsActive;
+    document.getElementById('gpsToggleBtn').textContent = t.gpsDisableBtn;
+  }
+
+  const guideTitleEl = document.getElementById('guideTitle');
+  if (guideTitleEl && (guideTitleEl.textContent === UI.en.mapDefaultTitle || guideTitleEl.textContent === UI.ru.mapDefaultTitle)) {
+    guideTitleEl.textContent = t.mapDefaultTitle;
+  }
+  const guideSayEl = document.getElementById('guideSay');
+  if (guideSayEl && (guideSayEl.textContent === UI.en.selectCastle || guideSayEl.textContent === UI.ru.selectCastle)) {
+    guideSayEl.textContent = t.selectCastle;
+  }
+  const mapPanelTitleEl = document.getElementById('mapPanelTitle');
+  if (mapPanelTitleEl && (mapPanelTitleEl.textContent === UI.en.mapDefaultTitle || mapPanelTitleEl.textContent === UI.ru.mapDefaultTitle)) {
+    mapPanelTitleEl.textContent = t.mapDefaultTitle;
+  }
+  const mapStatusEl = document.getElementById('mapStatus');
+  if (mapStatusEl && [UI.en.mapStatusDefault, UI.ru.mapStatusDefault, UI.en.mapStatusClosed, UI.ru.mapStatusClosed].includes(mapStatusEl.textContent)) {
+    mapStatusEl.textContent = t.mapStatusDefault;
+  }
+  document.body.classList.toggle('lang-ru', lang === 'ru');
+  document.body.classList.toggle('lang-en', lang === 'en');
+  document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
+  document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
+  updateProgress();
+}
+
+function setLang(newLang){
+  lang = newLang;
+  try { localStorage.setItem('rhineLang', lang); } catch(e){}
+  applyStaticText();
+  renderCastles(castles);
+  renderLegends(legendsOnly);
+  renderRoutePlaces();
+  renderGuide(guideIndex);
+  loadProgress();
+}
+
+document.getElementById('langEnBtn').addEventListener('click', () => setLang('en'));
+document.getElementById('langRuBtn').addEventListener('click', () => setLang('ru'));
+
+function renderCastles(list){
+  const el = document.getElementById('view-castles');
+  const t = UI[lang];
+  el.innerHTML = list.map(c => `
+    <div class="castle-card" data-id="${c.id}">
+      <div class="castle-top" onclick="toggleOpen('${c.id}')">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone('${c.id}')">✓</div>
+        <div style="flex:1">
+          <div class="castle-name">${c.name}</div>
+          <div class="castle-town">${c.town}${c.pop && c.pop !== '—' ? ' · ' + c.pop : ''}</div>
+          <div class="castle-meta">
+            <span class="badge">${t.builtLabel}: ${f(c,'built')}</span>
+            <span class="badge">${f(c,'destroyed')}</span>
+          </div>
+        </div>
+        <div class="expand-hint">▾</div>
+      </div>
+      <div class="detail">
+        <h4>${t.factsLabel}</h4>
+        <p>${f(c,'facts')}</p>
+        <h4>${t.legendLabel}</h4>
+        <p class="legend-box">${f(c,'legend')}</p>
+        ${f(c,'say') ? `<div class="say-line">"${f(c,'say')}"</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderLegends(list){
+  const el = document.getElementById('view-legends');
+  el.innerHTML = list.map(c => `
+    <div class="info-card">
+      <h3>${c.name} <span style="color:var(--muted); font-weight:400; font-size:0.8rem;">— ${c.town}</span></h3>
+      <p>${f(c,'legend')}</p>
+    </div>
+  `).join('');
+}
+
+function openRouteView(){
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const tab = document.querySelector('.tab[data-tab="route"]');
+  if (tab) tab.classList.add('active');
+  const view = document.getElementById('view-route');
+  if (view) view.classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderRoutePlaces(list){
+  const el = document.getElementById('view-route');
+  if (!el) return;
+  const items = list || routePlaces;
+  const rp = (item, field) => (lang === 'ru' && item[field+'Ru']) ? item[field+'Ru'] : item[field];
+  el.innerHTML = `
+    <div class="info-card">
+      <h3>🗺️ ${lang==='ru' ? 'ПО ПУТИ' : 'ON THE ROUTE'}</h3>
+      <p>${lang==='ru' ? 'Интересные места, истории и необычные факты для рассказа, пока едет автобус — помимо самих замков.' : 'Interesting places, stories and unusual facts to use while the bus is moving — beyond the castles themselves.'}</p>
+    </div>
+    ${items.map((r, i) => `
+      <div class="route-card">
+        <div class="route-kicker">${String(i+1).padStart(2,'0')}</div>
+        <h3>${rp(r,'title')}</h3>
+        <div class="route-place">${r.place}</div>
+        <p>${rp(r,'text')}</p>
+        <p>${rp(r,'extra')}</p>
+        <p class="route-hook">${rp(r,'hook')}</p>
+      </div>
+    `).join('')}
+    <div class="info-card">
+      <p class="route-source-note">${lang==='ru'
+        ? 'Материал основан на существующем гиде плюс дополнительные исторические и туристические источники. Легенды намеренно обозначены как легенды там, где их историческая достоверность не подтверждена.'
+        : 'Content is based on the existing guide plus additional historical and tourism research. Legends are intentionally described as legends where their historical basis is uncertain.'}</p>
+    </div>
+  `;
+}
+
+function toggleOpen(id){
+  document.querySelector(`.castle-card[data-id="${id}"]`).classList.toggle('open');
+}
+function toggleDone(id){
+  const card = document.querySelector(`.castle-card[data-id="${id}"]`);
+  card.classList.toggle('done');
+  saveProgress();
+  updateProgress();
+}
+function saveProgress(){
+  const done = [...document.querySelectorAll('.castle-card.done')].map(c => c.dataset.id);
+  try { localStorage.setItem('rhineCastlesDone', JSON.stringify(done)); } catch(e){}
+}
+function loadProgress(){
+  try {
+    const done = JSON.parse(localStorage.getItem('rhineCastlesDone') || '[]');
+    done.forEach(id => {
+      const card = document.querySelector(`.castle-card[data-id="${id}"]`);
+      if (card) card.classList.add('done');
+    });
+  } catch(e){}
+  updateProgress();
+}
+function updateProgress(){
+  document.getElementById('progressCount').textContent = document.querySelectorAll('.castle-card.done').length;
+  document.getElementById('progressTotal').textContent = castles.length;
+}
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.querySelectorAll('.castle-card.done').forEach(c => c.classList.remove('done'));
+  saveProgress();
+  updateProgress();
+});
+
+renderCastles(castles);
+renderLegends(legendsOnly);
+renderRoutePlaces();
+loadProgress();
+
+let leafletMap = null;
+let globalShowCastleFunc = null;
+
+function initMap(){
+  if (leafletMap) {
+    setTimeout(() => leafletMap.invalidateSize(), 50);
+    return;
+  }
+
+  leafletMap = L.map('mapDiv', { scrollWheelZoom: true }).setView([50.08, 7.75], 10);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(leafletMap);
+
+  const routePoints = [];
+  const markers = [];
+  let selectedIndex = -1;
+
+  const haloMarker = L.circleMarker([50.08, 7.75], {
+    radius: 0, color: '#ff6666', weight: 2, fillColor: '#ff6666', fillOpacity: 0.35,
+    className: 'castle-halo', interactive: false
+  }).addTo(leafletMap);
+  haloMarker.setStyle({ opacity: 0 });
+
+  const panel = document.getElementById('mapPanel');
+  const title = document.getElementById('mapPanelTitle');
+  const meta = document.getElementById('mapPanelMeta');
+  const facts = document.getElementById('mapPanelFacts');
+  const legend = document.getElementById('mapPanelLegend');
+  const say = document.getElementById('mapPanelSay');
+  const mapSpeakBtn = document.getElementById('mapPanelSpeak');
+  const status = document.getElementById('mapStatus');
+
+  function showCastle(index, panMap=true){
+    if (index < 0 || index >= castles.length) return;
+    const c = castles[index];
+    const t = UI[lang];
+    selectedIndex = index;
+    renderGuide(index);
+
+    title.textContent = c.name;
+    meta.textContent = `${c.town}${c.pop && c.pop !== '—' ? ' · ' + c.pop : ''}  •  ${t.builtLabel} ${f(c,'built')}`;
+    facts.innerHTML =
+      `<strong>${t.factsLabel}:</strong> ${f(c,'facts')}<br><br>` +
+      `<strong>${t.statusField}:</strong> ${f(c,'destroyed')}<br>` +
+      `<strong>${t.styleField}:</strong> ${f(c,'style')}`;
+    legend.innerHTML = `<strong>${t.legendLabel}:</strong> ${f(c,'legend')}`;
+
+    const sayText = f(c,'say');
+    const speechText = sayText && sayText.trim() ? sayText : f(c,'facts');
+    say.style.display = 'block';
+    say.innerHTML = `<strong style="color:#008cff">${t.say}:</strong> “${speechText}”`;
+    mapSpeakBtn.style.display = 'block';
+    mapSpeakBtn.textContent = t.readAloud;
+    mapSpeakBtn.classList.remove('speaking');
+
+    panel.classList.add('open');
+    status.textContent = `${index + 1} / ${castles.length}  •  ${c.name}`;
+
+    markers.forEach((m, i) => {
+      m.setStyle(i === index
+        ? {radius:17, color:'#fff', weight:4, fillColor:'#ffb703', fillOpacity:1}
+        : {radius:8, color:'#fff', weight:2, fillColor:'#ff1a1a', fillOpacity:0.9});
+    });
+    haloMarker.setLatLng([c.lat, c.lng]);
+    haloMarker.setStyle({ opacity: 0.6, radius: 14 });
+    haloMarker.bringToBack();
+
+    if (panMap && leafletMap) leafletMap.panTo([c.lat, c.lng], {animate:true, duration:.35});
+  }
+
+  globalShowCastleFunc = showCastle;
+
+  castles.forEach((c, i) => {
+    if (typeof c.lat !== 'number') return;
+    routePoints.push([c.lat, c.lng]);
+
+    const marker = L.circleMarker([c.lat, c.lng], {
+      radius:8, color:'#fff', weight:2, fillColor:'#ff1a1a', fillOpacity:0.9
+    }).addTo(leafletMap);
+
+    marker.bindTooltip(c.name, {
+      direction:'top', offset:[0,-7], opacity:.96, className:'castle-name-tooltip'
+    });
+
+    marker.on('click', () => showCastle(i));
+    marker.on('mouseover', () => {
+      if (window.matchMedia('(pointer:fine)').matches) marker.openTooltip();
+    });
+
+    markers.push(marker);
+  });
+
+  if (routePoints.length){
+    L.polyline(routePoints, {
+      color:'#7fb3d5', weight:2, opacity:.5, dashArray:'4 6'
+    }).addTo(leafletMap);
+    leafletMap.fitBounds(routePoints, {padding:[30,30]});
+  }
+
+  document.getElementById('nextCastle').onclick = () => {
+    const next = selectedIndex < 0 ? 0 : (selectedIndex + 1) % castles.length;
+    showCastle(next);
+  };
+
+  document.getElementById('prevCastle').onclick = () => {
+    const prev = selectedIndex <= 0 ? castles.length - 1 : selectedIndex - 1;
+    showCastle(prev);
+  };
+
+  mapSpeakBtn.onclick = () => {
+    if (!('speechSynthesis' in window)) return;
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      mapSpeakBtn.classList.remove('speaking');
+      mapSpeakBtn.textContent = UI[lang].readAloud;
+      return;
+    }
+    const c = castles[selectedIndex];
+    if (!c) return;
+    const legendTxt = f(c,'legend');
+    const parts = [f(c,'say'), f(c,'facts'), legendTxt ? ((lang==='ru'?'Легенда: ':'Legend: ') + legendTxt) : ''].filter(txt => txt && txt.trim());
+    const speechText = parts.join('. ');
+    if (!speechText) return;
+    const utterance = new SpeechSynthesisUtterance(speechText);
+    utterance.lang = lang === 'ru' ? 'ru-RU' : 'en-US';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const voice = lang === 'ru'
+      ? (voices.find(v => /^ru-RU$/i.test(v.lang)) || voices.find(v => /^ru/i.test(v.lang)))
+      : (voices.find(v => /^en-US$/i.test(v.lang)) || voices.find(v => /^en-GB$/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)));
+    if (voice) utterance.voice = voice;
+    utterance.onstart = () => { mapSpeakBtn.classList.add('speaking'); mapSpeakBtn.textContent = UI[lang].stopReading; };
+    utterance.onend = () => { mapSpeakBtn.classList.remove('speaking'); mapSpeakBtn.textContent = UI[lang].readAloud; };
+    utterance.onerror = () => { mapSpeakBtn.classList.remove('speaking'); mapSpeakBtn.textContent = UI[lang].readAloud; };
+    window.speechSynthesis.speak(utterance);
+  };
+
+  L.DomEvent.disableClickPropagation(panel);
+  L.DomEvent.disableScrollPropagation(panel);
+
+  document.getElementById('mapPanelClose').onclick = () => {
+    panel.classList.remove('open');
+    status.textContent = UI[lang].mapStatusClosed;
+    markers.forEach(m => m.setStyle({
+      radius:8, color:'#fff', weight:2, fillColor:'#ff1a1a', fillOpacity:0.9
+    }));
+    haloMarker.setStyle({ opacity: 0 });
+    selectedIndex = -1;
+  };
+
+  setTimeout(() => leafletMap.invalidateSize(), 100);
+}
+
+let guideIndex = 0;
+
+function renderGuide(index){
+  if (typeof stopSpeaking === 'function') stopSpeaking();
+  if (!castles.length) return;
+  guideIndex = (index + castles.length) % castles.length;
+  const c = castles[guideIndex];
+  const t = UI[lang];
+
+  document.getElementById('guideCounter').textContent = `${guideIndex + 1} / ${castles.length}`;
+  document.getElementById('guideTitle').textContent = c.name;
+  document.getElementById('guideMeta').textContent =
+    `${c.town}${c.pop && c.pop !== '—' ? ' · ' + c.pop : ''}  •  ${f(c,'built')}`;
+
+  const sayTxt = f(c,'say');
+  document.getElementById('guideSay').textContent =
+    sayTxt ? `“${sayTxt}”` : t.noSayLine;
+
+  document.getElementById('guideStory').textContent = f(c,'facts');
+  document.getElementById('guideLegend').textContent = f(c,'legend');
+  document.getElementById('guideDetails').innerHTML =
+    `<b>${t.statusField}:</b> ${f(c,'destroyed')}<br><b>${t.styleField}:</b> ${f(c,'style')}`;
+}
+
+
+const speakBtn = document.getElementById('speakBtn');
+const speakStatus = document.getElementById('speakStatus');
+
+function pickVoice(voices){
+  return lang === 'ru'
+    ? (voices.find(v => /^ru-RU$/i.test(v.lang)) || voices.find(v => /^ru/i.test(v.lang)))
+    : (voices.find(v => /^en-US$/i.test(v.lang)) || voices.find(v => /^en-GB$/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)));
+}
+
+function buildSpeechText(c){
+  const legendTxt = f(c,'legend');
+  const parts = [f(c,'say'), f(c,'facts'), legendTxt ? ((lang==='ru'?'Легенда: ':'Legend: ') + legendTxt) : ''].filter(txt => txt && txt.trim());
+  return parts.join('. ');
+}
+
+function stopSpeaking(){
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  speakBtn.classList.remove('speaking');
+  speakBtn.textContent = UI[lang].readAloud;
+  speakStatus.textContent = '';
+}
+
+function speakCurrent(){
+  if (!('speechSynthesis' in window)) {
+    speakStatus.textContent = 'Text-to-speech is not available in this browser.';
+    return;
+  }
+
+  if (window.speechSynthesis.speaking) {
+    stopSpeaking();
+    return;
+  }
+
+  const c = castles[guideIndex];
+  const text = buildSpeechText(c);
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang === 'ru' ? 'ru-RU' : 'en-US';
+  utterance.rate = 0.88;
+  utterance.pitch = 1.0;
+
+  const voices = window.speechSynthesis.getVoices();
+  const voice = pickVoice(voices);
+  if (voice) utterance.voice = voice;
+
+  utterance.onstart = () => {
+    speakBtn.classList.add('speaking');
+    speakBtn.textContent = UI[lang].stopReading;
+    speakStatus.textContent = lang === 'ru' ? 'Читаю вслух…' : 'Reading aloud…';
+  };
+  utterance.onend = stopSpeaking;
+  utterance.onerror = stopSpeaking;
+
+  window.speechSynthesis.speak(utterance);
+}
+
+speakBtn.addEventListener('click', speakCurrent);
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => {};
+}
+
+let playAllActive = false;
+const playAllBtn = document.getElementById('playAllBtn');
+
+function speakForPlayAll(index){
+  if (!playAllActive) return;
+  if (!('speechSynthesis' in window)) { stopPlayAll(); return; }
+  renderGuide(index);
+  const c = castles[guideIndex];
+  const utterance = new SpeechSynthesisUtterance(buildSpeechText(c));
+  utterance.lang = lang === 'ru' ? 'ru-RU' : 'en-US';
+  utterance.rate = 0.88;
+  utterance.pitch = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const voice = pickVoice(voices);
+  if (voice) utterance.voice = voice;
+  speakBtn.classList.add('speaking');
+  speakBtn.textContent = UI[lang].stopReading;
+  speakStatus.textContent = lang === 'ru'
+    ? `Читаю замок ${guideIndex + 1} из ${castles.length}…`
+    : `Reading castle ${guideIndex + 1} of ${castles.length}…`;
+  utterance.onend = () => {
+    if (!playAllActive) return;
+    const next = guideIndex + 1;
+    if (next >= castles.length) { stopPlayAll(); return; }
+    speakForPlayAll(next);
+  };
+  utterance.onerror = () => stopPlayAll();
+  window.speechSynthesis.speak(utterance);
+}
+
+function stopPlayAll(){
+  playAllActive = false;
+  playAllBtn.textContent = UI[lang].playAll;
+  stopSpeaking();
+}
+
+playAllBtn.addEventListener('click', () => {
+  if (playAllActive) { stopPlayAll(); return; }
+  playAllActive = true;
+  playAllBtn.textContent = UI[lang].stopAll;
+  speakForPlayAll(guideIndex);
+});
+
+document.getElementById('guidePrev').addEventListener('click', () => renderGuide(guideIndex - 1));
+document.getElementById('guideNext').addEventListener('click', () => renderGuide(guideIndex + 1));
+
+document.getElementById('guideMap').addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelector('.tab[data-tab="map"]').classList.add('active');
+  document.getElementById('view-map').classList.add('active');
+  initMap();
+});
+
+renderGuide(0);
+applyStaticText();
+
+const openRouteFromInfo = document.getElementById('openRouteFromInfo');
+if (openRouteFromInfo) openRouteFromInfo.addEventListener('click', openRouteView);
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    
+    tab.classList.add('active');
+    const targetId = 'view-' + tab.dataset.tab;
+    const targetView = document.getElementById(targetId);
+    if (targetView) {
+      targetView.classList.add('active');
+    }
+    
+    if (tab.dataset.tab === 'map') initMap();
+    if (tab.dataset.tab === 'guide') renderGuide(guideIndex);
+  });
+});
+
+document.getElementById('searchBox').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase().trim();
+
+  if (!q){
+    renderCastles(castles);
+    renderLegends(legendsOnly);
+    renderRoutePlaces();
+    loadProgress();
+    return;
+  }
+
+  const matchText = (...vals) => vals.some(v => v && v.toLowerCase().includes(q));
+
+  const filteredCastles = castles.filter(c =>
+    matchText(c.name, c.town, c.facts, c.factsRu, c.legend, c.legendRu, c.say, c.sayRu)
+  );
+  const filteredLegends = filteredCastles.filter(c => c.legend && c.legend.length > 40);
+  const filteredRoute = routePlaces.filter(r =>
+    matchText(r.title, r.titleRu, r.place, r.text, r.textRu, r.extra, r.extraRu, r.hook, r.hookRu)
+  );
+
+  renderCastles(filteredCastles);
+  renderLegends(filteredLegends);
+  renderRoutePlaces(filteredRoute);
+  loadProgress();
+});
+</script>
+
+<!-- Надежная логика GPS с защитой от iOS-багов -->
+<script>
+let watchId = null;
+let lastOpenedCastleId = null;
+
+function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+  var R = 6371000;
+  var dLat = deg2rad(lat2 - lat1);
+  var dLon = deg2rad(lon2 - lon1);
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}
+
+const gpsToggleBtn = document.getElementById('gpsToggleBtn');
+const gpsStatusText = document.getElementById('gpsStatusText');
+
+gpsToggleBtn.addEventListener('click', () => {
+  if (!gpsActive) {
+    if (!navigator.geolocation) {
+      alert(lang === 'ru' ? 'Геолокация не поддерживается вашим браузером' : 'Geolocation is not supported by your browser');
+      return;
+    }
+    
+    gpsStatusText.textContent = UI[lang].gpsAcquiring;
+    gpsToggleBtn.textContent = lang === 'ru' ? '⏳ Ожидание…' : '⏳ Acquiring…';
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        gpsActive = true;
+        processPosition(position);
+        
+        watchId = setInterval(() => {
+          navigator.geolocation.getCurrentPosition(processPosition, (err) => {
+            console.warn('GPS interval skip:', err);
+          }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 5000 });
+        }, 15000);
+      },
+      (error) => {
+        console.warn('GPS Error:', error);
+        gpsActive = false;
+        gpsStatusText.textContent = UI[lang].gpsBlocked;
+        gpsToggleBtn.textContent = UI[lang].gpsEnableBtn;
+        gpsToggleBtn.classList.remove('gps-active');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 7000,
+        maximumAge: 0
+      }
+    );
+  } else {
+    if (watchId !== null) {
+      clearInterval(watchId);
+      watchId = null;
+    }
+    gpsActive = false;
+    lastOpenedCastleId = null;
+    gpsStatusText.textContent = UI[lang].gpsManual;
+    gpsToggleBtn.textContent = UI[lang].gpsEnableBtn;
+    gpsToggleBtn.classList.remove('gps-active');
+  }
+});
+
+function processPosition(position) {
+  const userLat = position.coords.latitude;
+  const userLng = position.coords.longitude;
+  
+  gpsStatusText.textContent = UI[lang].gpsActive;
+  gpsToggleBtn.textContent = UI[lang].gpsDisableBtn;
+  gpsToggleBtn.classList.add('gps-active');
+
+  let closestIndex = -1;
+  let minDistance = Infinity;
+  const MAX_AUTO_DISTANCE = 1500;
+
+  castles.forEach((c, idx) => {
+    const dist = getDistanceFromLatLonInMeters(userLat, userLng, c.lat, c.lng);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closestIndex = idx;
+    }
+  });
+
+  if (closestIndex !== -1 && minDistance <= MAX_AUTO_DISTANCE) {
+    const targetCastle = castles[closestIndex];
+    if (targetCastle.id !== lastOpenedCastleId) {
+      lastOpenedCastleId = targetCastle.id;
+      guideIndex = closestIndex;
+      renderGuide(guideIndex);
+      if (typeof globalShowCastleFunc === 'function') {
+        globalShowCastleFunc(closestIndex, true);
+      }
+
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const guideTab = document.querySelector('.tab[data-tab="guide"]');
+      const guideView = document.getElementById('view-guide');
+      if (guideTab) guideTab.classList.add('active');
+      if (guideView) guideView.classList.add('active');
+
+      const banner = document.getElementById('gpsFoundBanner');
+      if (banner) {
+        const distText = minDistance < 1000 ? `${Math.round(minDistance)} m` : `${(minDistance/1000).toFixed(1)} km`;
+        banner.textContent = (lang === 'ru' ? '📍 Рядом: ' : '📍 Near: ') + targetCastle.name + ` (${distText})`;
+        banner.classList.add('show');
+        setTimeout(() => banner.classList.remove('show'), 8000);
+      }
+    }
+  }
+}
+</script>
+
+<!-- Надежное масштабирование шрифта для ВСЕХ текстов повсюду -->
+<script>
+(function(){
+  var MIN = 0.8, MAX = 1.6, STEP = 0.1;
+  var value = document.getElementById('textSizeValue');
+  var scale = 1.0;
+  try {
+    var saved = parseFloat(localStorage.getItem('rhineTextScale'));
+    if (isFinite(saved) && saved >= MIN && saved <= MAX) scale = saved;
+  } catch(e){}
+
+  function apply(){
+    document.documentElement.style.fontSize = (scale * 100) + '%';
+    if (value) value.textContent = Math.round(scale * 100) + '%';
+    try { localStorage.setItem('rhineTextScale', String(scale)); } catch(e){}
+  }
+
+  document.getElementById('textSizeDown').onclick = function(){
+    scale = Math.max(MIN, Math.round((scale - STEP) * 10) / 10);
+    apply();
+  };
+  document.getElementById('textSizeUp').onclick = function(){
+    scale = Math.min(MAX, Math.round((scale + STEP) * 10) / 10);
+    apply();
+  };
+
+  apply();
+})();
+</script>
+
+</body>
+</html>
