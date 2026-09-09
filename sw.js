@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rhine-guide-v1';
+const CACHE_NAME = 'rhine-guide-v2';
 const PRECACHE_URLS = [
   './',
   './index.html',
