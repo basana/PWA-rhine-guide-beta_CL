@@ -210,7 +210,7 @@
   .castle-name-tooltip{
     background:rgba(24,34,51,.88); color:var(--text); border:1px solid #008cff;
     border-radius:6px; padding:2px 6px; font-weight:600; font-size:.72rem;
-    box-shadow:0 2px 8px rgba(0,0,0,.35); white-space:nowrap; pointer-events:none;
+    box-shadow:0 2px 8px rgba(0,0,0,.35); white-space:nowrap; cursor:pointer;
   }
   .castle-name-tooltip:before{border-right-color:#008cff !important;}
   .map-note{font-size:.78rem; color:var(--muted); margin:8px 2px 0;}
@@ -537,6 +537,25 @@ const castles = [
     sayRu: "Посмотрите на этот замок внимательно. Так выглядели все остальные замки — до того, как пришли французы."
   },
   {
+    id: "maus",
+    lat: 50.1719014, lng: 7.695775,
+    name: "Burg Maus (\"Mouse Castle\")",
+    town: "Wellmich / St. Goarshausen",
+    pop: "—",
+    built: "1356 (started)",
+    builtRu: "начат в 1356 году",
+    destroyed: "Never destroyed",
+    destroyedRu: "Никогда не был разрушен",
+    style: "Fell into disrepair, restored 1900–06",
+    styleRu: "Обветшал, восстановлен в 1900–06",
+    facts: "Building started in 1356. A powerful archbishop built it to protect his own river tolls, against the family who built 'the Cat' nearby. Over time it fell into disrepair, but no war ever destroyed it. It was restored around 1900.",
+    factsRu: "Строительство началось в 1356 году. Могущественный архиепископ построил его, чтобы защищать свои речные пошлины от семьи, построившей соседний замок «Кот». Со временем он обветшал, но ни одна война его так и не разрушила. Его восстановили около 1900 года.",
+    legend: "Local people joked that the 'cat' castle would one day eat the 'mouse' castle. It never did — the mouse is still standing today.",
+    legendRu: "Местные жители шутили, что замок «Кот» когда-нибудь съест замок «Мышь». Этого так и не случилось — «Мышь» стоит до сих пор.",
+    say: "Unlike its 'cat' rival across the valley, the mouse was never actually destroyed.",
+    sayRu: "В отличие от своего соперника «Кота» через долину, «Мышь» никогда по-настоящему не разрушали."
+  },
+  {
     id: "rheinfels",
     lat: 50.1544865, lng: 7.704412,
     name: "Burg Rheinfels",
@@ -575,25 +594,6 @@ const castles = [
     sayRu: ""
   },
   {
-    id: "maus",
-    lat: 50.1719014, lng: 7.695775,
-    name: "Burg Maus (\"Mouse Castle\")",
-    town: "Wellmich / St. Goarshausen",
-    pop: "—",
-    built: "1356 (started)",
-    builtRu: "начат в 1356 году",
-    destroyed: "Never destroyed",
-    destroyedRu: "Никогда не был разрушен",
-    style: "Fell into disrepair, restored 1900–06",
-    styleRu: "Обветшал, восстановлен в 1900–06",
-    facts: "Building started in 1356. A powerful archbishop built it to protect his own river tolls, against the family who built 'the Cat' nearby. Over time it fell into disrepair, but no war ever destroyed it. It was restored around 1900.",
-    factsRu: "Строительство началось в 1356 году. Могущественный архиепископ построил его, чтобы защищать свои речные пошлины от семьи, построившей соседний замок «Кот». Со временем он обветшал, но ни одна война его так и не разрушила. Его восстановили около 1900 года.",
-    legend: "Local people joked that the 'cat' castle would one day eat the 'mouse' castle. It never did — the mouse is still standing today.",
-    legendRu: "Местные жители шутили, что замок «Кот» когда-нибудь съест замок «Мышь». Этого так и не случилось — «Мышь» стоит до сих пор.",
-    say: "Unlike its 'cat' rival across the valley, the mouse was never actually destroyed.",
-    sayRu: "В отличие от своего соперника «Кота» через долину, «Мышь» никогда по-настоящему не разрушали."
-  },
-  {
     id: "loreley",
     icon: "rock",
     lat: 50.1391667, lng: 7.7280556,
@@ -612,6 +612,25 @@ const castles = [
     legendRu: "Многие думают, что эта легенда очень древняя. Это не так. В 1801 году писатель Клеменс Брентано придумал грустную женщину, которая топится здесь от любви. В 1824 году другой писатель, Генрих Гейне, сделал её знаменитой — красавицу, которая сидит на скале, расчёсывает золотые волосы и поёт. Её песня так прекрасна, что моряки забывают о реке, и их лодки разбиваются о скалы. Позже композитор положил это стихотворение на музыку, и песня стала известна на весь мир.",
     say: "This famous story is only 200 years old. But the danger underneath it was very real.",
     sayRu: "Этой знаменитой истории всего 200 лет. Но опасность под ней была совершенно настоящей."
+  },
+  {
+    id: "sooneck",
+    lat: 50.019453, lng: 7.8248973,
+    name: "Burg Sooneck",
+    town: "Niederheimbach",
+    pop: "~750",
+    built: "11th–12th c.",
+    builtRu: "XI–XII века",
+    destroyed: "Destroyed 1282, again 1689 by the French",
+    destroyedRu: "Разрушен в 1282, снова французами в 1689",
+    style: "Restored 1843, functional not decorative",
+    styleRu: "Восстановлен в 1843, скромно, без излишеств",
+    facts: "Built in the 1000s or 1100s. Like its neighbor Reichenstein, it was home to robber knights. The emperor's army destroyed it in 1282. People rebuilt it, but French troops destroyed it again in 1689. In 1842, the Prussian royal family restored it a final time — this time keeping it simple, closer to how it really once looked.",
+    factsRu: "Построен в XI или XII веке. Как и соседний Райхенштайн, он был домом рыцарей-разбойников. Армия императора разрушила его в 1282 году. Его отстроили заново, но французские войска разрушили его снова в 1689-м. В 1842 году прусская королевская семья восстановила его в последний раз — на этот раз просто, ближе к тому, как он выглядел на самом деле.",
+    legend: "It shares the same robber-knight story as Reichenstein. Together, the two castles remind us of a time when local lords simply took what they wanted from passing ships.",
+    legendRu: "У него та же история про рыцарей-разбойников, что и у Райхенштайна. Вместе эти два замка напоминают нам о временах, когда местные феодалы просто забирали всё, что хотели, с проходящих кораблей.",
+    say: "",
+    sayRu: ""
   },
   {
     id: "reichenstein",
@@ -650,25 +669,6 @@ const castles = [
     legendRu: "Позже здесь останавливались знаменитые гости, включая королеву Викторию Английскую. Местные жители до сих пор считают это доказательством нового величия замка.",
     say: "This is where it all started — the very first ruin a prince decided to rebuild as a fairy-tale castle.",
     sayRu: "Именно отсюда всё началось — первая руина, которую принц решил превратить в сказочный замок."
-  },
-  {
-    id: "sooneck",
-    lat: 50.019453, lng: 7.8248973,
-    name: "Burg Sooneck",
-    town: "Niederheimbach",
-    pop: "~750",
-    built: "11th–12th c.",
-    builtRu: "XI–XII века",
-    destroyed: "Destroyed 1282, again 1689 by the French",
-    destroyedRu: "Разрушен в 1282, снова французами в 1689",
-    style: "Restored 1843, functional not decorative",
-    styleRu: "Восстановлен в 1843, скромно, без излишеств",
-    facts: "Built in the 1000s or 1100s. Like its neighbor Reichenstein, it was home to robber knights. The emperor's army destroyed it in 1282. People rebuilt it, but French troops destroyed it again in 1689. In 1842, the Prussian royal family restored it a final time — this time keeping it simple, closer to how it really once looked.",
-    factsRu: "Построен в XI или XII веке. Как и соседний Райхенштайн, он был домом рыцарей-разбойников. Армия императора разрушила его в 1282 году. Его отстроили заново, но французские войска разрушили его снова в 1689-м. В 1842 году прусская королевская семья восстановила его в последний раз — на этот раз просто, ближе к тому, как он выглядел на самом деле.",
-    legend: "It shares the same robber-knight story as Reichenstein. Together, the two castles remind us of a time when local lords simply took what they wanted from passing ships.",
-    legendRu: "У него та же история про рыцарей-разбойников, что и у Райхенштайна. Вместе эти два замка напоминают нам о временах, когда местные феодалы просто забирали всё, что хотели, с проходящих кораблей.",
-    say: "",
-    sayRu: ""
   },
   {
     id: "gutenfels",
@@ -1315,6 +1315,12 @@ function initMap(){
     });
 
     marker.on('click', () => showCastle(i));
+    marker.on('tooltipopen', (e) => {
+      const el = e.tooltip.getElement();
+      if (el) {
+        el.onclick = () => showCastle(i);
+      }
+    });
 
     markers.push(marker);
   });
