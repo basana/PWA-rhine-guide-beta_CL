@@ -1,10 +1,10 @@
-const CACHE_NAME = 'rhine-guide-v2';
+const CACHE_NAME = 'rhine-guide-v3';
 const PRECACHE_URLS = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './icon-marksburg-192.png',
+  './icon-marksburg-512.png'
 ];
 
 self.addEventListener('install', (event) => {

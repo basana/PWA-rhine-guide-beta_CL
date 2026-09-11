@@ -6,7 +6,7 @@
 <title>Rhine Gorge Castles — Koblenz to Bingen</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f1620">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-marksburg-192.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <style>
   :root{
@@ -125,7 +125,7 @@
   .badge{
     background:var(--card2); border-radius:6px; padding:2px 8px; font-size:0.75rem; color:var(--muted);
   }
-  .expand-hint{margin-left:auto; color:var(--muted); font-size:1.1rem; transform:rotate(0deg); transition:transform .2s;}
+  .expand-hint{margin-left:auto; color:#008cff; font-size:1.9rem; font-weight:700; transform:rotate(0deg); transition:transform .2s; flex:0 0 28px; text-align:center;}
   .castle-card.open .expand-hint{transform:rotate(180deg);}
   .detail{display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:0.88rem; line-height:1.5;}
   .castle-card.open .detail{display:block;}
@@ -176,10 +176,21 @@
   .map-panel{
     position:absolute; z-index:1200; left:12px; right:12px; bottom:12px;
     background:rgba(24,34,51,.98); border:1px solid #008cff; border-radius:14px;
-    box-shadow:0 8px 28px rgba(0,0,0,.45); padding:14px;
-    max-height:68%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior:contain; display:none;
+    box-shadow:0 8px 28px rgba(0,0,0,.45); padding:10px 14px;
+    max-height:44%; display:none;
   }
   .map-panel.open{display:block;}
+  .map-panel-body{
+    display:none; margin-top:8px; padding-top:9px; border-top:1px solid var(--border);
+    max-height:calc(44vh - 90px); overflow-y:auto; overflow-x:hidden;
+    -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior:contain;
+  }
+  .map-panel.expanded .map-panel-body{display:block;}
+  .map-panel-toggle{
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--border);
+    background:var(--card2); color:var(--text); font-size:.9rem; cursor:pointer; flex:0 0 34px;
+    margin-right:6px;
+  }
   .map-panel-head{display:flex; align-items:flex-start; gap:10px;}
   .map-panel-title{font-size:1.05rem; font-weight:700; color:#008cff; flex:1;}
   .map-panel-close{
@@ -210,7 +221,8 @@
   .castle-name-tooltip{
     background:rgba(24,34,51,.88); color:var(--text); border:1px solid #008cff;
     border-radius:6px; padding:2px 6px; font-weight:600; font-size:.72rem;
-    box-shadow:0 2px 8px rgba(0,0,0,.35); white-space:nowrap; cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.35); white-space:nowrap;
+    cursor:pointer !important; pointer-events:auto !important;
   }
   .castle-name-tooltip:before{border-right-color:#008cff !important;}
   .map-note{font-size:.78rem; color:var(--muted); margin:8px 2px 0;}
@@ -237,7 +249,7 @@
     .tab{padding:7px 12px;}
     main{padding-top:7px;}
     #mapDiv{height:64vh; min-height:430px;}
-    .map-panel{left:8px; right:8px; bottom:8px; max-height:68%;}
+    .map-panel{left:8px; right:8px; bottom:8px; max-height:44%;}
     .map-controls{gap:6px;}
     .map-nav-btn{font-size:.82rem;}
   }
@@ -359,17 +371,20 @@
   <div class="view" id="view-map">
     <div id="mapDiv">
       <div class="map-panel" id="mapPanel">
-        <div class="map-panel-head">
+        <div class="map-panel-head" id="mapPanelHead">
           <div style="flex:1">
             <div class="map-panel-title" id="mapPanelTitle">Select a castle</div>
             <div class="map-panel-meta" id="mapPanelMeta"></div>
           </div>
+          <button class="map-panel-toggle" id="mapPanelToggle" aria-label="Expand">▲</button>
           <button class="map-panel-close" id="mapPanelClose" aria-label="Close">×</button>
         </div>
-        <div class="map-panel-section" id="mapPanelFacts"></div>
-        <div class="map-panel-say" id="mapPanelSay" style="display:none"></div>
-        <button class="map-panel-speak" id="mapPanelSpeak">🔊 READ ALOUD</button>
-        <div class="map-panel-section map-panel-legend" id="mapPanelLegend"></div>
+        <div class="map-panel-body" id="mapPanelBody">
+          <div class="map-panel-section" id="mapPanelFacts"></div>
+          <div class="map-panel-say" id="mapPanelSay" style="display:none"></div>
+          <button class="map-panel-speak" id="mapPanelSpeak">🔊 READ ALOUD</button>
+          <div class="map-panel-section map-panel-legend" id="mapPanelLegend"></div>
+        </div>
       </div>
     </div>
     <div class="map-controls">
@@ -1229,6 +1244,7 @@ function initMap(){
 
   const routePoints = [];
   const markers = [];
+  const hitAreas = [];
   let selectedIndex = -1;
 
   const haloMarker = L.circleMarker([50.08, 7.75], {
@@ -1270,12 +1286,14 @@ function initMap(){
     mapSpeakBtn.classList.remove('speaking');
 
     panel.classList.add('open');
+    panel.classList.remove('expanded');
+    document.getElementById('mapPanelToggle').textContent = '▲';
     status.textContent = `${index + 1} / ${castles.length}  •  ${c.name}`;
 
     markers.forEach((m, i) => {
       m.setStyle(i === index
-        ? {radius:17, color:'#fff', weight:4, fillColor:'#ffb703', fillOpacity:1}
-        : {radius:8, color:'#fff', weight:2, fillColor:'#ff1a1a', fillOpacity:0.9});
+        ? {radius:22, color:'#fff', weight:4, fillColor:'#ffb703', fillOpacity:1}
+        : {radius:12, color:'#fff', weight:2, fillColor:'#ff1a1a', fillOpacity:0.9});
     });
     haloMarker.setLatLng([c.lat, c.lng]);
     haloMarker.setStyle({ opacity: 0.6, radius: 14 });
@@ -1307,8 +1325,16 @@ function initMap(){
     routePoints.push([c.lat, c.lng]);
 
     const marker = L.circleMarker([c.lat, c.lng], {
-      radius:8, color:'#fff', weight:2, fillColor:'#ff1a1a', fillOpacity:0.9
+      radius:12, color:'#fff', weight:2, fillColor:'#ff1a1a', fillOpacity:0.9
     }).addTo(leafletMap);
+
+    // Невидимая зона нажатия крупнее самой точки — так же, как в обычном UI-дизайне
+    // делают onClick/rollover area больше видимого элемента, для удобства пальцем.
+    const hitArea = L.circleMarker([c.lat, c.lng], {
+      radius:24, stroke:false, fillOpacity:0, interactive:true
+    }).addTo(leafletMap);
+    hitArea.on('click', () => showCastle(i));
+    hitArea.bringToFront();
 
     marker.bindTooltip(c.name, {
       permanent: true, direction:'right', offset:[10,0], opacity:.92, className:'castle-name-tooltip'
@@ -1323,7 +1349,10 @@ function initMap(){
     });
 
     markers.push(marker);
+    hitAreas.push(hitArea);
   });
+
+  hitAreas.forEach(h => h.bringToFront());
 
   if (routePoints.length){
     L.polyline(routePoints, {
@@ -1374,11 +1403,16 @@ function initMap(){
   L.DomEvent.disableClickPropagation(panel);
   L.DomEvent.disableScrollPropagation(panel);
 
+  document.getElementById('mapPanelToggle').onclick = () => {
+    const expanded = panel.classList.toggle('expanded');
+    document.getElementById('mapPanelToggle').textContent = expanded ? '▼' : '▲';
+  };
+
   document.getElementById('mapPanelClose').onclick = () => {
     panel.classList.remove('open');
     status.textContent = UI[lang].mapStatusClosed;
     markers.forEach(m => m.setStyle({
-      radius:8, color:'#fff', weight:2, fillColor:'#ff1a1a', fillOpacity:0.9
+      radius:12, color:'#fff', weight:2, fillColor:'#ff1a1a', fillOpacity:0.9
     }));
     haloMarker.setStyle({ opacity: 0 });
     selectedIndex = -1;
@@ -1629,8 +1663,8 @@ gpsToggleBtn.addEventListener('click', () => {
         let reason;
         if (error.code === 1) {
           reason = lang === 'ru'
-            ? '⚠️ Доступ к геолокации запрещён (проверьте разрешения сайта в Safari)'
-            : '⚠️ Location permission denied (check Safari site permissions)';
+            ? '⚠️ Доступ к геолокации запрещён (проверьте: Настройки iOS → Служба геолокации, и разрешения сайта в браузере)'
+            : '⚠️ Location permission denied (check: iOS Settings → Location Services, and site permissions in your browser)';
         } else if (error.code === 2) {
           reason = lang === 'ru' ? '⚠️ Геолокация недоступна на этом устройстве' : '⚠️ Position unavailable on this device';
         } else if (error.code === 3) {
