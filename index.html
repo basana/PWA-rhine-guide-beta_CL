@@ -1290,6 +1290,13 @@ function initMap(){
     document.getElementById('mapPanelToggle').textContent = '▲';
     status.textContent = `${index + 1} / ${castles.length}  •  ${c.name}`;
 
+    // Заголовок разросся (GPS-панель, регулятор шрифта и т.д.), и на некоторых
+    // экранах карта с карточкой могут не помещаться без прокрутки страницы.
+    // Гарантированно прокручиваем к самой карте, чтобы карточку точно было видно.
+    setTimeout(() => {
+      document.getElementById('mapDiv').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+
     markers.forEach((m, i) => {
       m.setStyle(i === index
         ? {radius:22, color:'#fff', weight:4, fillColor:'#ffb703', fillOpacity:1}
